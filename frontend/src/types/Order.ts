@@ -20,5 +20,6 @@ export type Order = {
     totalPrice: number;
     discount?: number;
     status?: OrderStatus;
+    orderNumber?: string;
     tierSnapshot?: 'regular' | 'vip' | 'new'; 
   };

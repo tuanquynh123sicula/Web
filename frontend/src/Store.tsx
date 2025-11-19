@@ -4,6 +4,7 @@ import type { CartItem } from './types/Cart'
 import type { UserInfo } from './types/UserInfo'
 // import axios from 'axios'
 import type { ShippingAddress } from './types/Cart'
+import { Product } from './types/Product'
 
 
 
@@ -15,13 +16,19 @@ import type { ShippingAddress } from './types/Cart'
 // })
 
 
-type AppState = {
+export interface AppState {
+        loading: boolean
+        error: string | null
+        products: Product[]
         mode: string
         cart: Cart
         userInfo?: UserInfo
       }
 
       const initialState: AppState = {
+        loading: false,
+        error: null,
+        products: [],
         userInfo: localStorage.getItem('userInfo')
           ? JSON.parse(localStorage.getItem('userInfo')!)
           : null,
@@ -98,6 +105,9 @@ type AppState = {
 
           case 'USER_SIGNOUT':
             return {
+              loading: false,
+              error: null,
+              products: [],
               mode:
                 window.matchMedia &&
                 window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -117,8 +127,8 @@ type AppState = {
                 shippingPrice: 0,
                 taxPrice: 0,
                 totalPrice: 0,
-                }
               }
+            }
 
           case 'SAVE_SHIPPING_ADDRESS':
             return {

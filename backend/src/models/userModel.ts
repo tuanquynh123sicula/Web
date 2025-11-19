@@ -24,6 +24,7 @@ import { modelOptions, prop, getModelForClass } from '@typegoose/typegoose';
         @prop({ enum: ['regular', 'vip', 'new'], default: 'regular' })
         
         public tier!: 'regular' | 'vip' | 'new'
+
     }
       export const UserModel = getModelForClass(User);
 

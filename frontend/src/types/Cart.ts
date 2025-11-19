@@ -6,14 +6,23 @@ export type CartItem = {
         price: number
         _id: string
         name: string
+        variantId?: string;
+        variant?: {
+          color: string;
+          storage: string;
+          ram: string;
+        };
       }
       
 export type ShippingAddress = {
+        id?: string
         fullName: string
         address: string
         city: string
         country: string
         postalCode: string
+        phoneNumber?: string
+        isDefault?: boolean
       }
 
 export type Cart = {
@@ -25,3 +34,11 @@ export type Cart = {
         shippingAddress: ShippingAddress
         paymentMethod: string
       }
+
+// export type VariantInfo = {
+//   color: string
+//   storage: string
+//   ram: string
+//   price: number
+//   countInStock: number
+// }

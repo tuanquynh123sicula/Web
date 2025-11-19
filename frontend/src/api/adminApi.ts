@@ -1,6 +1,7 @@
 import { Product } from '@/types/Product'
 import { User } from '@/types/User'
 import { Order } from '@/types/Order'
+import { Blog } from '@/types/Blog'
 import apiClient from '../apiClient'
 
 export const authHeader = () => {
@@ -8,7 +9,6 @@ export const authHeader = () => {
   const token: string | undefined = raw ? JSON.parse(raw).token : undefined
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
-
 
 export const getAllProducts = async (): Promise<Product[]> => {
   const { data } = await apiClient.get<Product[]>('/api/products/admin', {
@@ -39,50 +39,42 @@ export const getAllOrders = async (): Promise<Order[]> => {
   return data
 }
 
-export const createProduct = async (data: {
-  name: string
-  price: number
-  image: string
-  brand: string
-  category: string
-  countInStock: number
-  description: string
-  rating?: number
-  numReviews?: number
-}) => {
-  const res = await apiClient.post('/api/products', data, {
+export async function createProduct(product: Product) {
+  const res = await apiClient.post('/api/products', product, {
     headers: authHeader(),
   })
   return res.data
 }
 
-
-export const updateProduct = async (
-  id: string,
-  updates: Partial<Product>
-): Promise<Product> => {
+export async function updateProduct(id: string, product: Product) {
   const { data } = await apiClient.put<Product>(
     `/api/admin/products/${id}`,
-    updates,
+    product,
     { headers: authHeader() }
   )
   return data
 }
+
+// ✅ UPLOAD IMAGE - Chỉ định nghĩa 1 lần
 export const uploadImage = async (file: File): Promise<string> => {
   const formData = new FormData()
   formData.append('image', file)
-  const { data } = await apiClient.post<{ image: string }>(
-  '/api/upload',
-  formData,
-  {
-    headers: {
-      ...authHeader(),
-      'Content-Type': 'multipart/form-data',
-    },
+  try {
+    const { data } = await apiClient.post<{ image: string }>(
+      '/upload', // ← apiClient đã có /api prefix
+      formData,
+      {
+        headers: {
+          ...authHeader(),
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return data.image
+  } catch (error) {
+    console.error('❌ Upload error:', error)
+    throw error
   }
-)
-return data.image
-
 }
 
 export const updateOrderStatus = async (id: string, status: string) => {
@@ -108,5 +100,48 @@ export const getUserOrders = async (id: string) => {
   const { data } = await apiClient.get(`/api/admin/users/${id}/orders`, {
     headers: authHeader(),
   })
+  return data
+}
+
+// === BLOGS ===
+export const getAllBlogs = async () => {
+  const { data } = await apiClient.get('/api/admin/blogs')
+  return data
+}
+
+export const getBlogById = async (id: string) => {
+  const { data } = await apiClient.get(`/api/admin/blogs/${id}`)
+  return data
+}
+
+export const createBlog = async (blogData: Partial<Blog>) => {
+  const { data } = await apiClient.post('/api/admin/blogs', blogData, {
+    headers: authHeader(),
+  })
+  return data
+}
+
+export const updateBlog = async (id: string, blogData: Partial<Blog>) => {
+  const { data } = await apiClient.put(`/api/admin/blogs/${id}`, blogData, {
+    headers: authHeader(),
+  })
+  return data
+}
+
+export const deleteBlog = async (id: string) => {
+  const { data } = await apiClient.delete(`/api/admin/blogs/${id}`, {
+    headers: authHeader(),
+  })
+  return data
+}
+
+// === PUBLIC BLOGS ===
+export const getPublicBlogs = async () => {
+  const { data } = await apiClient.get('/api/admin/blogs/public/all')
+  return data
+}
+
+export const getPublicBlogById = async (id: string) => {
+  const { data } = await apiClient.get(`/api/admin/blogs/public/${id}`)
   return data
 }

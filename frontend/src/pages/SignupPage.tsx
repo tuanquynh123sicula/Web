@@ -1,20 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Store } from '../Store'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils'
 import { useSignupMutation } from '../hooks/userHooks'
-import Container from 'react-bootstrap/Container'
-import Form from 'react-bootstrap/Form'
-import Button from 'react-bootstrap/Button'
 import { Helmet } from 'react-helmet-async'
 import type { ApiError } from "../types/ApiError";
-import { Link } from 'react-router-dom'
 import LoadingBox from '../components/LoadingBox'
-
+// Không cần import các component Bootstrap nữa
 
 export default function SignupPage() {
-    const naviagate = useNavigate()
+    const navigate = useNavigate() // Đã sửa lỗi chính tả naviagate -> navigate
     const { search } = useLocation()
     const redirectInUrl = new URLSearchParams(search).get('redirect')
     const redirect = redirectInUrl ? redirectInUrl : '/'
@@ -29,75 +25,122 @@ export default function SignupPage() {
 
     useEffect(() => {
         if (userInfo) {
-            naviagate(redirect)
-            }
-    }, [naviagate, userInfo, redirect])
+            navigate(redirect)
+        }
+    }, [navigate, userInfo, redirect])
 
     const { mutateAsync: signup, isPending } = useSignupMutation()
 
     const submitHandler = async (e: React.SyntheticEvent) => {
         e.preventDefault()
         if (password !== confirmPassword) {
-            toast.error('Passwords do not match')
+            toast.error('Mật khẩu xác nhận không khớp')
             return
         }
         try {
             const data = await signup({ name, email, password })
             dispatch({ type: 'USER_SIGNIN', payload: data })
             localStorage.setItem('userInfo', JSON.stringify(data))
-            naviagate(redirect || '/')
+            navigate(redirect || '/')
         } catch (err) {
             toast.error(getError(err as ApiError))
         }
     }
+
+    const isFormValid = name && email && password && confirmPassword && (password === confirmPassword);
+
     return (
-          <Container className="small-container">
+        <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-10">
             <Helmet>
-              <title>Sign Up</title>
+                <title>Đăng ký</title>
             </Helmet>
-            <h1 className="my-3">Sign Up</h1>
-            <Form onSubmit={submitHandler}>
-              <Form.Group className="mb-3" controlId="name">
-                <Form.Label>Name</Form.Label>
-                <Form.Control onChange={(e) => setName(e.target.value)} required />
-              </Form.Group>
 
-              <Form.Group className="mb-3" controlId="email">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="password">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  required
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+            {/* Container Form (Vuông góc, Shadow) */}
+            <div className="w-full max-w-md p-8 bg-white shadow-lg transition-all duration-500 ease-in-out">
+                <h1 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">Đăng ký</h1>
 
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="confirmPassword">
-                  <Form.Label>Confirm Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-              </Form.Group>
-             <div className="mb-3">
-                <Button disabled={isPending} type="submit">
-                    Sign Up
-                </Button>
-                {isPending && <LoadingBox />} 
-                </div>
-              <div className="mb-3">
-                Already have an account?{' '}
-                <Link to={`/signin?redirect=${redirect}`}>Sign-In</Link>
-              </div>
-            </Form>
-          </Container>
-        )
+                <form onSubmit={submitHandler}>
+                    {/* Name Group */}
+                    <div className="mb-4">
+                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">
+                            Tên
+                        </label>
+                        <input
+                            id="name"
+                            type="text"
+                            required
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                        />
+                    </div>
+
+                    {/* Email Group */}
+                    <div className="mb-4">
+                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
+                            Email
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            required
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                        />
+                    </div>
+
+                    {/* Password Group */}
+                    <div className="mb-4">
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">
+                            Mật khẩu
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            required
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                        />
+                    </div>
+                    
+                    {/* Confirm Password Group */}
+                    <div className="mb-6">
+                        <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-1">
+                            Xác nhận Mật khẩu
+                        </label>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            required
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                        />
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="mb-4">
+                        <button
+                            type="submit"
+                            disabled={isPending || !isFormValid}
+                            className={`w-full py-3 px-6 font-bold transition duration-300 transform 
+                                ${isFormValid ? 'bg-black hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'} 
+                                text-white disabled:opacity-70 disabled:hover:bg-gray-400`}
+                        >
+                            {isPending ? <LoadingBox /> : 'Đăng ký'}
+                        </button>
+                    </div>
+
+                    {/* Link to Sign In */}
+                    <div className="text-center text-sm text-gray-600">
+                        Đã có tài khoản?{' '}
+                        <Link 
+                            to={`/signin?redirect=${redirect}`}
+                            className="text-blue-600 font-bold hover:text-blue-800 transition-colors duration-300"
+                        >
+                            Đăng nhập
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
 }

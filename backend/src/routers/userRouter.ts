@@ -56,7 +56,38 @@ userRouter.get(
       res.status(404).send({ message: 'User not found' })
       return
     }
-    res.send(user)
+    res.send({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      tier: user.tier || 'regular',
+    })
   })
 )
-      
+
+userRouter.put(
+  '/profile',
+  isAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const user = await UserModel.findById((req as any).user._id)
+    if (!user) {
+      res.status(404).send({ message: 'User not found' })
+      return
+    }
+    user.name = req.body.name || user.name
+    user.email = req.body.email || user.email
+    if (req.body.password) {
+      user.password = bcrypt.hashSync(req.body.password, 8)
+    }
+    const updatedUser = await user.save()
+    res.send({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+      tier: updatedUser.tier || 'regular',
+      token: generateToken(updatedUser),
+    })
+  })
+)

@@ -77,3 +77,10 @@ export const useDeleteAllOrdersMutation = () =>
     mutationFn: async () =>
       (await apiClient.delete(`/api/orders`)).data,
   })
+
+export const useGetRecentOrdersQuery = (limit: number) =>
+  useQuery<Order[]>({
+    queryKey: ['orders', 'recent', limit],
+    queryFn: async () =>
+      (await apiClient.get<Order[]>(`/api/orders/mine?limit=${limit}`)).data,
+  })

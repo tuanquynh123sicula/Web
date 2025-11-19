@@ -2,11 +2,32 @@ import { useQuery } from '@tanstack/react-query'
 import apiClient from '../apiClient'
 import type { Product } from '../types/Product'
 
-export const useGetProductsQuery = () =>
+interface FilterParams {
+  category?: string
+  minPrice?: number
+  maxPrice?: number
+  rating?: number
+  sortBy?: string
+  inStock?: boolean
+}
+
+export const useGetProductsQuery = (filters?: FilterParams) =>
   useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', filters],
     queryFn: async () => {
-      const { data } = await apiClient.get<Product[]>(`/api/products`)
+      const params = new URLSearchParams()
+      
+      if (filters?.category) params.append('category', filters.category)
+      if (filters?.minPrice) params.append('minPrice', String(filters.minPrice))
+      if (filters?.maxPrice) params.append('maxPrice', String(filters.maxPrice))
+      if (filters?.rating) params.append('rating', String(filters.rating))
+      if (filters?.sortBy) params.append('sortBy', filters.sortBy)
+      if (filters?.inStock) params.append('inStock', 'true')
+      
+      const queryString = params.toString()
+      const url = queryString ? `/api/products?${queryString}` : '/api/products'
+      
+      const { data } = await apiClient.get<Product[]>(url)
       if (!data) throw new Error('No product data received')
       return data
     },
@@ -23,3 +44,15 @@ export const useGetProductDetailsBySlugQuery = (slug?: string) =>
     },
     enabled: !!slug, 
   })
+
+  export const useGetRelatedProductsQuery = (category: string, currentProductId: string, limit = 4) =>
+  useQuery<Product[]>({
+    queryKey: ['products', 'related', category],
+    queryFn: async () => {
+      const { data } = await apiClient.get<Product[]>(
+        `/api/products/related?category=${category}&exclude=${currentProductId}&limit=${limit}`
+      );
+      return data;
+    },
+    enabled: !!category, 
+  });

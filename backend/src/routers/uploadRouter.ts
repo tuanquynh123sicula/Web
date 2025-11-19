@@ -1,23 +1,26 @@
 import express from 'express'
 import multer from 'multer'
-import path from 'path'
-import { isAuth, isAdmin } from '../utils'
+import { isAuth } from '../utils' 
 
 const uploadRouter = express.Router()
 
-// Lưu ảnh vào thư mục uploads/
 const storage = multer.diskStorage({
   destination: 'uploads/',
   filename: function (req, file, cb) {
-    cb(null, file.originalname)
+    const ext = file.originalname.substring(file.originalname.lastIndexOf('.'));
+    cb(null, `${Date.now()}-${file.fieldname}${ext}`); 
   },
 })
 
 const upload = multer({ storage })
 
-// POST /api/upload
-uploadRouter.post('/', isAuth, isAdmin, upload.single('image'), (req, res) => {
-  res.send({ image: `/uploads/${req.file?.filename}` })
+uploadRouter.post('/', isAuth, upload.single('image'), (req, res) => {
+  if (!req.file) {
+      return res.status(400).send({ message: "No file uploaded." });
+  }
+  const imagePath = `/${req.file.path.replace(/\\/g, '/')}`;
+
+  res.send({ image: imagePath })
 })
 
 export default uploadRouter

@@ -6,11 +6,7 @@ import { toast } from "react-toastify";
 import { getError } from "../utils";
 import type { ApiError } from "../types/ApiError";
 import { Helmet } from "react-helmet-async";
-import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
 import LoadingBox from "../components/LoadingBox";
-import "../index.css";
 
 export default function SigninPage() {
   const navigate = useNavigate();
@@ -46,7 +42,7 @@ export default function SigninPage() {
     if (userInfo) navigate(redirect);
   }, [navigate, userInfo, redirect]);
 
-  // 👇 Xử lý hiệu ứng "né chuột"
+  // Xử lý hiệu ứng "né chuột"
   const handleMouseEnter = () => {
     if (!email || !password) {
       const nextIndex = (shiftIndex + 1) % positions.length;
@@ -54,46 +50,78 @@ export default function SigninPage() {
     }
   };
 
+  const isFormValid = email && password;
+
   return (
-    <Container className="small-container text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-10">
       <Helmet>
-        <title>Tech Hub</title>
+        <title>Đăng nhập</title>
       </Helmet>
-      <h1 className="my-3">Sign In</h1>
-      <Form onSubmit={submitHandler}>
-        <Form.Group className="mb-3" controlId="email">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            required
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Form.Group>
-        <div className="btn-container mb-3">
-          <Button
-            ref={btnRef}
-            className={`login-btn ${positions[shiftIndex]}`}
-            disabled={isPending}
-            type="submit"
-            onMouseEnter={handleMouseEnter}
-          >
-            Sign In
-          </Button>
-          {isPending && <LoadingBox />}
-        </div>
-        <div className="mb-3">
-          New customer?{" "}
-          <Link to={`/signup?redirect=${redirect}`}>Create your account</Link>
-        </div>
-      </Form>
-    </Container>
+
+      {/* Loại bỏ rounded-xl, thay bằng shadow-lg và transition */}
+      <div className="w-full max-w-md p-8 bg-white shadow-lg transition-all duration-500 ease-in-out">
+        <h1 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">Đăng nhập</h1>
+
+        <form onSubmit={submitHandler}>
+          {/* Email Group */}
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">
+              Email
+            </label>
+            {/* Loại bỏ rounded-lg */}
+            <input
+              id="email"
+              type="email"
+              required
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+            />
+          </div>
+
+          {/* Password Group */}
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">
+              Mật khẩu
+            </label>
+            {/* Loại bỏ rounded-lg */}
+            <input
+              id="password"
+              type="password"
+              required
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+            />
+          </div>
+
+          {/* Nút Submit và hiệu ứng "né chuột" */}
+          <div className="btn-container mb-6 relative flex justify-center">
+            <button
+              ref={btnRef}
+              className={`login-btn 
+                          ${isFormValid ? 'bg-black hover:bg-gray-800' : 'bg-gray-400 cursor-not-allowed'}
+                          ${!isFormValid ? positions[shiftIndex] : ''} 
+                          text-white py-3 px-6 font-bold transition-all duration-300 transform 
+                          disabled:opacity-70 disabled:hover:bg-gray-400 hover:scale-[1.02] active:scale-[0.98]`}
+              disabled={isPending}
+              type="submit"
+              onMouseEnter={handleMouseEnter}
+              style={{ minWidth: '160px' }}
+            >
+              {isPending ? <LoadingBox /> : 'Đăng nhập'}
+            </button>
+          </div>
+
+          <div className="text-center text-sm text-gray-600">
+            Khách hàng mới?{" "}
+            <Link
+              to={`/signup?redirect=${redirect}`}
+              className="text-blue-600 font-bold hover:text-blue-800 transition-colors duration-300"
+            >
+              Tạo tài khoản
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

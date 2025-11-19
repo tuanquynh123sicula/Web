@@ -10,29 +10,31 @@ type Item = {
 }
 
 const sidebarItems: Item[] = [
+  { title: 'HOME', href: '/' },
   { title: 'ABOUT US', href: '/about' },
   {
-    title: 'PRODUCT',
+    title: 'SHOP',
     href: '/products',
     children: [
-      { title: 'Tất cả sản phẩm', href: '/products' },
-      {
-        title: 'Điện thoại',
-        href: '/products?category=phone',
-        children: [
-          { title: 'Samsung', href: '/products?category=phone&brand=samsung' },
-          { title: 'iPhone', href: '/products?category=phone&brand=iphone' },
-          { title: 'Xiaomi', href: '/products?category=phone&brand=xiaomi' },
-          { title: 'Honor', href: '/products?category=phone&brand=honor' },
-        ],
-      },
-      { title: 'Laptop', href: '/products?category=laptop' },
-      { title: 'Máy tính bảng', href: '/products?category=tablet' },
-      { title: 'Phụ kiện điện thoại', href: '/products?category=accessories' },
+      { title: 'Điện thoại', href: '/products?category=Phone' },
+      { title: 'Laptop', href: '/products?category=Laptop' },
+      { title: 'Phụ kiện', href: '/products?category=Accessories' },
+    ],
+  },
+  {
+    title: 'BRANDS',
+    href: '/products',
+    children: [
+      { title: 'Apple', href: '/products?category=Apple' },
+      { title: 'Samsung', href: '/products?category=Samsung' },
+      { title: 'Xiaomi', href: '/products?category=Xiaomi' },
+      { title: 'Honor', href: '/products?category=Honor' },
     ],
   },
   { title: 'BLOGS', href: '/blogs' },
+  { title: 'CONTACT', href: '/contact' },
 ]
+
 
 const dropdownVariants: Variants = {
   hidden: { opacity: 0, y: 6, scale: 0.98 },
@@ -82,7 +84,7 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 bottom-0 w-56">
       <div className="h-full flex flex-col">
         <Link to="/" className="flex items-center gap-3 px-10 py-4">
-          <img src="/logo/logo.jpg" alt="logo" className="w-20 h-auto object-contain" />
+          <img src="/logo/logo.jpg" alt="logo" className="w-20 h-auto object-contain hover:scale-105 transition-transform duration-300" />
         </Link>
 
         <nav className="px-4 py-4 flex-1">
@@ -103,7 +105,7 @@ export default function Sidebar() {
                 >
                   <Link
                     to={item.href}
-                    className="block px-3 py-2 rounded hover:bg-gray-100 transition-colors"
+                    className="block px-3 py-2  hover:bg-gray-100 transition-colors hover:scale-90 trasition-transform duration-900 rounded"
                     aria-expanded={!!item.children && isOpenTop}
                   >
                     {item.title}
@@ -116,7 +118,7 @@ export default function Sidebar() {
                         animate="visible"
                         exit="exit"
                         variants={dropdownVariants}
-                        className="absolute left-full top-0 ml-2 w-56 bg-white border rounded shadow-lg ring-1 ring-black/5 z-40"
+                        className="absolute left-full top-0 ml-2 w-56 bg-white border shadow-lg ring-1 ring-black/5 z-40"
                       >
                         <ul className="p-3 space-y-2">
                           {item.children.map((c) => {

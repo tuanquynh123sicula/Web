@@ -47,13 +47,6 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-// export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-//   console.log('isAdmin check:', req.user);
-//   if (req.user && req.user.isAdmin) 
-//     next();
-//   else res.status(403).json({ message: 'Admin privileges required' });
-// }
-
 export const isAdmin = (req: Request, res: Response, next: NextFunction): void => {
   // console.log('isAdmin check:', req.user)
   if (req.user && req.user.isAdmin) {
