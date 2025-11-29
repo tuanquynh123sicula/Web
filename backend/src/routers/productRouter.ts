@@ -1,5 +1,4 @@
-// backend/src/routers/productRouter.ts
-import express, { Request, Response } from 'express' // 💡 Đảm bảo Request, Response được import từ express
+import express, { Request, Response } from 'express'
 import asyncHandler from 'express-async-handler'
 import { ProductModel } from '../models/productModel'
 import { isAuth, isAdmin } from '../utils'
@@ -7,65 +6,44 @@ import { isAuth, isAdmin } from '../utils'
 export const productRouter = express.Router()
 
 // --- CONTROLLER cho SẢN PHẨM LIÊN QUAN ---
-
-// 💡 Khai báo rõ ràng kiểu dữ liệu cho req và res
 export async function getRelatedProducts(req: Request, res: Response) {
-    // req.query đã được TypeScript nhận ra vì Request được import
     const { category, exclude, limit } = req.query;
 
     if (!category) {
-        // 💡 res.status(number).send(object) là cú pháp đúng
         res.status(400).send({ message: 'Category parameter is required' });
         return;
     }
 
-    // 💡 Chuyển đổi limit sang số, sử dụng || 4 để đảm bảo giá trị mặc định
     const limitNum = parseInt(limit as string) || 4;
 
     try {
-        // Tìm sản phẩm cùng category nhưng loại trừ sản phẩm hiện tại (dùng $ne: not equal)
         const products = await ProductModel.find({
             category: category,
-            _id: { $ne: exclude }, // Loại trừ ID của sản phẩm hiện tại
-            countInStock: { $gt: 0 } // Chỉ lấy sản phẩm còn hàng
+            _id: { $ne: exclude },
+            countInStock: { $gt: 0 }
         })
         .limit(limitNum)
-        .sort({ rating: -1, createdAt: -1 }); // Ưu tiên các sản phẩm rating cao hơn
+        .sort({ rating: -1, createdAt: -1 })
 
-        // 💡 res.send(products) là cú pháp đúng
         res.send(products); 
     } catch (error) {
         console.error("Error fetching related products:", error);
-        // 💡 res.status(number).send(object) là cú pháp đúng
         res.status(500).send({ message: 'Failed to fetch related products.' });
     }
 }
 
-
-// ✅ GET /api/products/slug/:slug → public
-productRouter.get(
-    '/slug/:slug',
-    asyncHandler(async (req: Request, res: Response) => { // 💡 Khai báo kiểu cho req, res
-        const product = await ProductModel.findOne({ slug: req.params.slug })
-        if (product) {
-            res.json(product)
-        } else {
-            res.status(404).json({ message: 'Product Not Found' }) // 💡 Cú pháp JSON
-        }
-    })
-)
-
 // ✅ GET /api/products → public with filters & sorting
+// 💡 Đặt route generic TRƯỚC routes specific
 productRouter.get(
     '/',
-    asyncHandler(async (req: Request, res: Response) => { // 💡 Khai báo kiểu cho req, res
+    asyncHandler(async (req: Request, res: Response) => {
         try {
             const { category, minPrice, maxPrice, rating, sortBy, inStock } = req.query
 
             const filter: any = {}
 
             if (category) {
-                if ( category === 'Phone' ) {
+                if (category === 'Phone') {
                     filter.$or = [
                         { category: 'Iphone'},
                         { category: 'Samsung'},
@@ -112,24 +90,78 @@ productRouter.get(
     })
 )
 
-// ✅ GET /api/products/admin → admin only
+// ✅ GET /api/products/slug/:slug → public
 productRouter.get(
-    '/admin',
-    isAuth,
-    isAdmin,
-    asyncHandler(async (req: Request, res: Response) => { // 💡 Khai báo kiểu cho req, res
+    '/slug/:slug',
+    asyncHandler(async (req: Request, res: Response) => {
+        const product = await ProductModel.findOne({ slug: req.params.slug })
+        if (product) {
+            res.json(product)
+        } else {
+            res.status(404).json({ message: 'Product Not Found' })
+        }
+    })
+)
+
+// ✅ GET /api/products/related → public
+productRouter.get(
+    '/related',
+    asyncHandler(getRelatedProducts)
+)
+
+// ✅ GET /api/products/by-rating → public
+productRouter.get(
+    '/by-rating',
+    asyncHandler(async (req: Request, res: Response) => {
+        const { limit = 10 } = req.query
+
         const products = await ProductModel.find()
+            .sort({ rating: -1, numReviews: -1 })
+            .limit(Number(limit))
+
         res.json(products)
     })
 )
 
-// ✅ POST /api/products → thêm sản phẩm mới
+// ✅ GET /api/products/admin → admin only (THÊM ROUTE NÀY)
+productRouter.get(
+    '/admin',
+    isAuth,
+    isAdmin,
+    asyncHandler(async (req: Request, res: Response) => {
+        console.log('Fetching all products for admin')
+        const products = await ProductModel.find()
+        console.log('Found products:', products.length)
+        res.json(products)
+    })
+)
+
+// ✅ POST /api/products → create product (admin only)
 productRouter.post(
     '/',
     isAuth,
     isAdmin,
-    asyncHandler(async (req: Request, res: Response) => { // 💡 Khai báo kiểu cho req, res
-        const { name, brand, category, description, variants } = req.body
+    asyncHandler(async (req: Request, res: Response) => {
+        const { 
+            name, 
+            brand, 
+            category, 
+            description, 
+            price,
+            countInStock,
+            image,
+            rating,
+            numReviews,
+            variants 
+        } = req.body
+
+        // ✅ Validation
+        if (!name || !brand || !category || !image) {
+            res.status(400).json({ 
+                message: 'Missing required fields: name, brand, category, image' 
+            })
+            return
+        }
 
         const product = new ProductModel({
             name,
@@ -137,34 +169,60 @@ productRouter.post(
             brand,
             category,
             description,
-            rating: 0,
-            numReviews: 0,
-            variants,
+            price: Number(price) || 0,
+            countInStock: Number(countInStock) || 0,
+            image,
+            rating: Number(rating) || 0,
+            numReviews: Number(numReviews) || 0,
+            variants: variants || [],
         })
 
+        console.log('Creating product:', product)
         const created = await product.save()
+        console.log('Product created:', created)
         res.status(201).json(created)
     })
 )
 
-// ✅ PUT /api/admin/products/:id → sửa sản phẩm
+// ✅ GET /api/products/:id → get single product
+productRouter.get(
+    '/:id',
+    asyncHandler(async (req: Request, res: Response) => {
+        console.log('Fetching product by ID:', req.params.id)
+        const product = await ProductModel.findById(req.params.id)
+        if (product) {
+            res.json(product)
+        } else {
+            res.status(404).json({ message: 'Product not found' })
+        }
+    })
+)
+
+// ✅ PUT /api/products/:id → update product (admin only)
 productRouter.put(
-    '/admin/products/:id',
+    '/:id',
     isAuth,
     isAdmin,
-    asyncHandler(async (req: Request, res: Response) => { // 💡 Khai báo kiểu cho req, res
+    asyncHandler(async (req: Request, res: Response) => {
+        console.log('Updating product:', req.params.id)
         const product = await ProductModel.findById(req.params.id)
         if (product) {
             product.name = req.body.name || product.name
             product.brand = req.body.brand || product.brand
             product.category = req.body.category || product.category
             product.description = req.body.description || product.description
+            product.price = req.body.price !== undefined ? Number(req.body.price) : product.price
+            product.countInStock = req.body.countInStock !== undefined ? Number(req.body.countInStock) : product.countInStock
+            product.image = req.body.image || product.image
+            product.rating = req.body.rating !== undefined ? Number(req.body.rating) : product.rating
+            product.numReviews = req.body.numReviews !== undefined ? Number(req.body.numReviews) : product.numReviews
 
             if (req.body.variants && Array.isArray(req.body.variants)) {
                 product.variants = req.body.variants
             }
 
             const updated = await product.save()
+            console.log('Product updated:', updated)
             res.json(updated)
         } else {
             res.status(404).json({ message: 'Product not found' })
@@ -172,22 +230,18 @@ productRouter.put(
     })
 )
 
-// 💡 ROUTE SẢN PHẨM LIÊN QUAN (Sử dụng Controller đã khai báo rõ kiểu)
-productRouter.get(
-    '/related',
-    asyncHandler(getRelatedProducts)
-);
-
-// Thêm vào productRouter.ts
-productRouter.get(
-  '/by-rating',
-  asyncHandler(async (req: Request, res: Response) => {
-    const { limit = 10 } = req.query
-
-    const products = await ProductModel.find()
-      .sort({ rating: -1, numReviews: -1 })
-      .limit(Number(limit))
-
-    res.json(products)
-  })
+// ✅ DELETE /api/products/:id → delete product (admin only)
+productRouter.delete(
+    '/:id',
+    isAuth,
+    isAdmin,
+    asyncHandler(async (req: Request, res: Response) => {
+        console.log('Deleting product:', req.params.id)
+        const product = await ProductModel.findByIdAndDelete(req.params.id)
+        if (product) {
+            res.json({ message: 'Product deleted', product })
+        } else {
+            res.status(404).json({ message: 'Product not found' })
+        }
+    })
 )

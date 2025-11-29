@@ -171,7 +171,7 @@ export default function Header() {
               </AnimatePresence>
             </div>
           ) : (
-            <Link to="/signin" className="px-4 py-2 bg-black text-white flex items-center gap-2 transition-all duration-200 hover:bg-gray-800 font-semibold rounded-none hover:scale-105 active:scale-95 transform"> 
+            <Link to="/signin" className="px-4 py-2 text-black flex items-center gap-2 transition-all duration-200 hover:bg-gray-200 font-semibold rounded-none hover:scale-105 active:scale-95 transform"> 
               <IconUser className="w-5 h-5 transition duration-200" />
               <span>Đăng nhập</span>
             </Link>

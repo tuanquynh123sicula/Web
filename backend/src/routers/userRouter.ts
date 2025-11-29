@@ -1,93 +1,91 @@
 import express, { Request, Response } from 'express'
 import asyncHandler from 'express-async-handler'
-import bcrypt from 'bcryptjs'
-import { UserModel, User} from '../models/userModel'
-import { generateToken } from '../utils'
+import { UserModel } from '../models/userModel'
 import { isAuth } from '../utils'
 
 export const userRouter = express.Router()
 
-
-userRouter.post(
-     '/signin',
-     asyncHandler(async (req: Request, res: Response) => {
-       const user = await UserModel.findOne({ email: req.body.email })
-       if (user) {
-         if (bcrypt.compareSync(req.body.password, user.password)) {
-           res.json({
-             _id: user._id,
-             name: user.name,
-             email: user.email,
-             isAdmin: user.isAdmin,
-             token: generateToken(user),
-           })
-           return
-         }
-       }
-       res.status(401).send({ message: 'Invalid email or password' })
-     })
-   )
-
-userRouter.post(
-        '/signup',
-        asyncHandler(async (req: Request, res: Response) => {
-          const user = await UserModel.create({
-            name: req.body.name,
-            email: req.body.email,
-            password: bcrypt.hashSync(req.body.password),
-          } as User)
-
-          res.send({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            isAdmin: user.isAdmin,
-            token: generateToken(user),
-          })
-        })
-      )
-
+// ✅ GET /api/users/profile → lấy thông tin user đang login
 userRouter.get(
-  '/profile',
-  isAuth,
-  asyncHandler(async (req, res) => {
-    const user = await UserModel.findById((req as any).user._id).select('-password')
-    if (!user) {
-      res.status(404).send({ message: 'User not found' })
-      return
-    }
-    res.send({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      tier: user.tier || 'regular',
+    '/profile',
+    isAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+        console.log('Fetching user profile for:', req.user?._id)
+        
+        const user = await UserModel.findById(req.user?._id).select('-password')
+        
+        if (user) {
+            res.json(user)
+        } else {
+            res.status(404).json({ message: 'User not found' })
+        }
     })
-  })
 )
 
-userRouter.put(
-  '/profile',
-  isAuth,
-  asyncHandler(async (req: Request, res: Response) => {
-    const user = await UserModel.findById((req as any).user._id)
-    if (!user) {
-      res.status(404).send({ message: 'User not found' })
-      return
-    }
-    user.name = req.body.name || user.name
-    user.email = req.body.email || user.email
-    if (req.body.password) {
-      user.password = bcrypt.hashSync(req.body.password, 8)
-    }
-    const updatedUser = await user.save()
-    res.send({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isAdmin: updatedUser.isAdmin,
-      tier: updatedUser.tier || 'regular',
-      token: generateToken(updatedUser),
+// ✅ POST /api/users/signin
+userRouter.post(
+    '/signin',
+    asyncHandler(async (req: Request, res: Response) => {
+        const { email, password } = req.body
+        
+        const user = await UserModel.findOne({ email })
+        if (user && user.password === password) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isAdmin: user.isAdmin,
+                token: 'your-jwt-token', // Thay bằng JWT nếu có
+            })
+        } else {
+            res.status(401).json({ message: 'Invalid email or password' })
+        }
     })
-  })
+)
+
+// ✅ POST /api/users/signup
+userRouter.post(
+    '/signup',
+    asyncHandler(async (req: Request, res: Response) => {
+        const { name, email, password } = req.body
+        
+        const user = new UserModel({ name, email, password })
+        const created = await user.save()
+        
+        res.status(201).json({
+            _id: created._id,
+            name: created.name,
+            email: created.email,
+            isAdmin: created.isAdmin,
+            token: 'your-jwt-token',
+        })
+    })
+)
+
+// ✅ PUT /api/users/profile → update thông tin user
+userRouter.put(
+    '/profile',
+    isAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+        const user = await UserModel.findById(req.user?._id)
+        
+        if (user) {
+            user.name = req.body.name || user.name
+            user.email = req.body.email || user.email
+            
+            if (req.body.password) {
+                user.password = req.body.password
+            }
+            
+            const updated = await user.save()
+            res.json({
+                _id: updated._id,
+                name: updated.name,
+                email: updated.email,
+                isAdmin: updated.isAdmin,
+            })
+        } else {
+            res.status(404).json({ message: 'User not found' })
+        }
+    })
 )

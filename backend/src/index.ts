@@ -12,7 +12,7 @@ import { reviewRouter } from './routers/reviewRouter'
 import { seedRouter } from './routers/seedRouter'
 import { wishlistRouter } from './routers/wishlistRouter'
 import { compareRouter } from './routers/compareRouter'
-
+import { voucherRouter } from './routers/voucherRouter'
 
 
 dotenv.config()
@@ -63,16 +63,18 @@ mongoose
   app.use('/api/reviews', reviewRouter)
   app.use('/api/wishlist', wishlistRouter)
   app.use('/api/compare', compareRouter)
+  app.use('/api/vouchers', voucherRouter)
   app.use('/uploads', express.static('uploads'))
 
 
-  app.use(cors({
-  origin: 'http://localhost:5173', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true 
   
-}));
+  // ❌ KHỐI CORS TRÙNG LẶP ĐÃ BỊ XÓA KHỎI ĐÂY
+  // app.use(cors({
+  // origin: 'http://localhost:5173', 
+  // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  // allowedHeaders: ['Content-Type', 'Authorization'],
+  // credentials: true 
+  // }));
 
 
    const PORT = 4000

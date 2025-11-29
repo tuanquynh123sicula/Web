@@ -6,6 +6,7 @@ import ProductsPage from './pages/ProductsPage'
 import UsersPage from './pages/UsersPage'
 import AdminProtectedRoute from './components/AdminProtectedRoute'
 import BlogsPage from './pages/BlogPage'
+import VouchersPage from './pages/VouchersPage'
 
 export default function AdminApp() {
   const location = useLocation()
@@ -39,6 +40,7 @@ export default function AdminApp() {
           <NavLink to="/admin/orders">Orders</NavLink>
           <NavLink to="/admin/products">Products</NavLink>
           <NavLink to="/admin/users">Users</NavLink>
+          <NavLink to="/admin/vouchers">Vouchers</NavLink>
           <NavLink to="/admin/blogs">Blogs</NavLink>
         </nav>
         <div className="mt-12 pt-4 border-t border-gray-200">
@@ -59,6 +61,7 @@ export default function AdminApp() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="vouchers" element={<VouchersPage />} />
             <Route path="blogs" element={<BlogsPage />} />
           </Route>
           <Route path="*" element={<div className="text-3xl font-bold text-red-600">404 | Page not found</div>} />

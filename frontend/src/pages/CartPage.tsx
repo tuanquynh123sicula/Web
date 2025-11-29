@@ -61,7 +61,7 @@ export default function CartPage() {
             <Col md={8}>
               {cartItems.length === 0 ? (
                 <MessageBox>
-                  Giỏ hàng trống. <Link to="/" className="font-semibold text-blue-600 hover:text-blue-800 transition">Tiếp tục mua sắm</Link>
+                  Giỏ hàng trống. <Link to="/" className="font-semibold text-blue-600 hover:text-blue-800">Tiếp tục mua sắm</Link>
                 </MessageBox>
               ) : (
                 <ListGroup className="shadow-lg overflow-hidden">

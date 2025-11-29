@@ -124,9 +124,9 @@ export default function OrderHistoryPage() {
                       </td>
                       <td>
                         {order.isPaid ? (
-                          <span className="badge bg-success">Đã TT</span>
+                          <span className="badge bg-success">Đã Thanh Toán</span>
                         ) : (
-                          <span className="badge bg-danger">Chưa TT</span>
+                          <span className="badge bg-danger">Chưa Thanh Toán</span>
                         )}
                       </td>
                       <td>
@@ -144,10 +144,10 @@ export default function OrderHistoryPage() {
                       <td>
                         <Button
                           type="button"
-                          variant="dark" // Đổi sang dark/black style
+                          variant="gray-100" 
                           size="sm"
                           onClick={() => navigate(`/order/${order._id}`)}
-                          className="py-1 px-3 font-semibold hover:bg-gray-700 transition-colors"
+                          className="py-1 px-3 font-semibold text-black hover:bg-gray-100 transition-colors"
                         >
                           Xem
                         </Button>

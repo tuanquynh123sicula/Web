@@ -38,6 +38,7 @@ const ProductsPage: React.FC = () => {
   const loadProducts = async () => {
     try {
       const data = await getProducts()
+      console.log('Products loaded:', data) // Debug
       setProducts(data)
     } catch {
       toast.error('Không thể tải danh sách sản phẩm!')
@@ -58,9 +59,11 @@ const ProductsPage: React.FC = () => {
           ...authHeader(),
         },
       })
+      console.log('Upload response:', data) // Debug
       setForm({ ...form, image: data.image })
       toast.success('Tải ảnh lên thành công!')
-    } catch {
+    } catch (err) {
+      console.error('Upload error:', err) // Debug
       toast.error('Lỗi tải ảnh!')
     } finally {
       setIsLoading(false)
@@ -70,18 +73,38 @@ const ProductsPage: React.FC = () => {
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // ✅ Validate dữ liệu
+    if (!form.name || !form.brand || !form.category) {
+      toast.error('Vui lòng điền đầy đủ thông tin!')
+      return
+    }
+
+    if (!form.image) {
+      toast.error('Vui lòng upload ảnh sản phẩm!')
+      return
+    }
+
     try {
       setIsLoading(true)
+      
+      // ✅ Format slug
+      const slug = form.name.toLowerCase().replace(/\s+/g, '-')
+      const submitData = { ...form, slug }
+      
+      console.log('Submitting:', submitData) // Debug
+      
       if (editingId) {
-        await updateProduct(editingId, form)
+        await updateProduct(editingId, submitData)
         toast.success('Cập nhật sản phẩm thành công!')
       } else {
-        await createProduct(form)
+        await createProduct(submitData)
         toast.success('Tạo sản phẩm mới thành công!')
       }
       resetForm()
       loadProducts()
-    } catch {
+    } catch{
+      console.error('Submit error:') // Debug
       toast.error('Lỗi khi lưu sản phẩm!')
     } finally {
       setIsLoading(false)
@@ -150,7 +173,7 @@ const ProductsPage: React.FC = () => {
       <div className="bg-white border shadow-md p-6 mb-8 animate-slide-down transition-all duration-500 hover:shadow-lg" style={{ animationDelay: '0.1s' }}>
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Tên sản phẩm</label>
+            <label className="mb-2 font-medium text-gray-700">Tên sản phẩm *</label>
             <input
               type="text"
               value={form.name}
@@ -161,7 +184,7 @@ const ProductsPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Thương hiệu</label>
+            <label className="mb-2 font-medium text-gray-700">Thương hiệu *</label>
             <input
               type="text"
               value={form.brand}
@@ -172,7 +195,7 @@ const ProductsPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Danh mục</label>
+            <label className="mb-2 font-medium text-gray-700">Danh mục *</label>
             <input
               type="text"
               value={form.category}
@@ -183,33 +206,35 @@ const ProductsPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Giá</label>
+            <label className="mb-2 font-medium text-gray-700">Giá *</label>
             <input
               type="number"
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              value={form.price || 0}
+              onChange={(e) => setForm({ ...form, price: Number(e.target.value) || 0 })}
               className="border px-3 py-2 transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-sm"
               required
               placeholder="0"
+              min="0"
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Số lượng tồn</label>
+            <label className="mb-2 font-medium text-gray-700">Số lượng tồn *</label>
             <input
               type="number"
-              value={form.countInStock}
-              onChange={(e) => setForm({ ...form, countInStock: Number(e.target.value) })}
+              value={form.countInStock || 0}
+              onChange={(e) => setForm({ ...form, countInStock: Number(e.target.value) || 0 })}
               className="border px-3 py-2 transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-sm"
               required
               placeholder="0"
+              min="0"
             />
           </div>
           <div className="flex flex-col">
-            <label className="mb-2 font-medium text-gray-700">Rating</label>
+            <label className="mb-2 font-medium text-gray-700">Rating (0-5)</label>
             <input
               type="number"
               value={form.rating ?? 0}
-              onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
+              onChange={(e) => setForm({ ...form, rating: Math.min(5, Math.max(0, Number(e.target.value))) })}
               className="border px-3 py-2 transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-sm"
               min={0}
               max={5}
@@ -222,13 +247,14 @@ const ProductsPage: React.FC = () => {
             <input
               type="number"
               value={form.numReviews ?? 0}
-              onChange={(e) => setForm({ ...form, numReviews: Number(e.target.value) })}
+              onChange={(e) => setForm({ ...form, numReviews: Math.max(0, Number(e.target.value)) })}
               className="border px-3 py-2 transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-sm"
               placeholder="0"
+              min="0"
             />
           </div>
           <div className="flex flex-col col-span-2">
-            <label className="mb-2 font-medium text-gray-700">Mô tả</label>
+            <label className="mb-2 font-medium text-gray-700">Mô tả *</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -239,7 +265,7 @@ const ProductsPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col col-span-2">
-            <label className="mb-2 font-medium text-gray-700">Ảnh sản phẩm</label>
+            <label className="mb-2 font-medium text-gray-700">Ảnh sản phẩm * {form.image && ''}</label>
             <label className="border-2 border-dashed px-4 py-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400">
               <Upload size={24} className="text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">Chọn hoặc kéo ảnh vào đây</span>
@@ -248,6 +274,7 @@ const ProductsPage: React.FC = () => {
                 onChange={handleFileUpload} 
                 className="hidden"
                 accept="image/*"
+                disabled={isLoading}
               />
             </label>
             {form.image && (
@@ -263,7 +290,7 @@ const ProductsPage: React.FC = () => {
                           : `/images/${form.image}`
                   }
                   alt="preview"
-                  className="h-32 object-contain bg-gray-50 p-2"
+                  className="h-32 object-contain bg-gray-50 p-2 border"
                 />
                 <button
                   type="button"
@@ -278,7 +305,7 @@ const ProductsPage: React.FC = () => {
           <div className="flex gap-3 col-span-2">
             <Button 
               type="submit" 
-              disabled={isLoading}
+              disabled={isLoading || !form.image}
               className="flex-1 transition-all duration-300 hover:scale-105 active:scale-95"
             >
               {isLoading ? 'Đang xử lý...' : (editingId ? 'Lưu thay đổi' : 'Tạo sản phẩm')}
@@ -311,10 +338,11 @@ const ProductsPage: React.FC = () => {
           >
             <Card className="border shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 h-full">
               <CardContent className="p-4 flex flex-col h-full">
+                {/* ✅ Image */}
                 <div className="mb-3 overflow-hidden bg-gray-50 flex items-center justify-center h-48">
                   <img
                     src={
-                      typeof p.image === 'string' && p.image
+                      p.image
                         ? p.image.startsWith('http')
                           ? p.image
                           : p.image.startsWith('/uploads/')
@@ -326,23 +354,39 @@ const ProductsPage: React.FC = () => {
                     }
                     alt={p.name}
                     className="h-full object-contain transition-transform duration-300 hover:scale-110"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement
+                      img.src = '/images/no-image.png'
+                    }}
                   />
                 </div>
+                
+                {/* ✅ Name & Info */}
                 <h2 className="font-semibold text-gray-900 line-clamp-2 mb-1">{p.name}</h2>
                 <p className="text-sm text-gray-600 mb-2">{p.brand}</p>
                 <p className="text-xs text-gray-500 mb-2 line-clamp-1">{p.category}</p>
+                
+                {/* ✅ Price & Stock */}
                 <div className="flex items-center justify-between mb-3 flex-grow">
                   <div>
                     <p className="text-lg font-bold text-blue-600">
-                      {(typeof p.price === 'number' ? p.price : 0).toLocaleString()}₫
+                      {(p.price || 0).toLocaleString('vi-VN')}₫
                     </p>
-                    <p className="text-xs text-gray-500">Tồn: {p.countInStock}</p>
+                    <p className="text-xs text-gray-500">Tồn: {p.countInStock || 0}</p>
                   </div>
+                  
+                  {/* ✅ Rating & Reviews */}
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-yellow-600">⭐ {p.rating || 0}</p>
-                    <p className="text-xs text-gray-500">{p.numReviews} reviews</p>
+                    <p className="text-sm font-semibold text-yellow-600">
+                      ⭐ {(p.rating || 0).toFixed(1)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {p.numReviews || 0} reviews
+                    </p>
                   </div>
                 </div>
+                
+                {/* ✅ Actions */}
                 <div className="flex gap-2 mt-auto">
                   <button 
                     onClick={() => handleEdit(p)}

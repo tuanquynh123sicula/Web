@@ -94,13 +94,13 @@ export default function ProfilePage() {
         <title>Hồ sơ cá nhân</title>
       </Helmet>
       <div className="min-h-screen bg-[#f5f5f5] pl-56 pr-6 pt-20 pb-10">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto ">
           <h1 className="text-3xl font-bold mb-6 text-gray-900">Hồ sơ cá nhân</h1>
           <Row className="g-4">
 
             {/* Cột 1: Form cập nhật thông tin */}
             <Col md={8}>
-                <div className="p-6 bg-white rounded-lg shadow-lg mb-4">
+                <div className="p-6 bg-white rounded-lg shadow-lg mb-4 hover:scale-105 transition-transform duration-300 mr-10">
                     <h2 className="text-2xl font-bold mb-4 text-gray-800">Cập nhật thông tin</h2>
                     <Form onSubmit={submitHandler}>
                     <Form.Group className="mb-3" controlId="name">
@@ -109,7 +109,7 @@ export default function ProfilePage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="focus:border-black focus:ring-black"
+                        className="focus:border-black focus:ring-black hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
                         />
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="email">
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="focus:border-black focus:ring-black"
+                        className="focus:border-black focus:ring-black hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
                         />
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="password">
@@ -137,15 +137,15 @@ export default function ProfilePage() {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="focus:border-black focus:ring-black"
+                        className="focus:border-black focus:ring-black "
                         />
                     </Form.Group>
                     <div className="mb-3">
                         <Button
-                        variant="dark"
+                        variant="white"
                         type="submit"
                         disabled={isUpdatingProfile}
-                        className="py-2 px-6 font-semibold hover:bg-gray-800 transition-colors"
+                        className="py-2 px-6 border border-gray font-semibold hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
                         >
                         {isUpdatingProfile ? <LoadingBox/> : 'Cập nhật'}
                         </Button>
@@ -157,7 +157,7 @@ export default function ProfilePage() {
             {/* Cột 2: Hạng thành viên và Lịch sử đơn hàng tóm tắt */}
             <Col md={4} className='space-y-4'>
                 {/* Hạng Thành viên */}
-                <Card className="shadow-lg border-0 rounded-lg">
+                <Card className="shadow-lg border-0 rounded-lg hover:scale-105 transition-transform duration-300 mb-16">
                     <Card.Body className="p-4">
                         <Card.Title className="text-xl font-bold text-gray-800 mb-3">
                             Hạng Thành viên
@@ -181,9 +181,9 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* LỊCH SỬ ĐƠN HÀNG TÓM TẮT */}
-                <Card className="shadow-lg border-0 rounded-lg">
+                <Card className="shadow-lg border-0 rounded-lg hover:scale-105 transition-transform duration-300  ">
                     <Card.Body className="p-4">
-                        <Card.Title className="text-xl font-bold text-gray-800 mb-3 flex items-center">
+                        <Card.Title className="text-xl font-bold text-gray-800 mb-3 flex items-center " >
                             <FaHistory className="me-2 text-gray-600" /> Đơn hàng gần đây
                         </Card.Title>
                         {loadingOrders ? (
@@ -211,8 +211,8 @@ export default function ProfilePage() {
                         <div className="mt-3 text-center">
                             <Link to="/orderhistory">
                             <Button
-                                variant="outline-secondary"
-                                className="py-1 px-4 text-sm"
+                                variant="white"
+                                className="py-1 px-4 text-sm border border-gray font-semibold hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
                             >
                                 Xem tất cả đơn hàng
                             </Button>

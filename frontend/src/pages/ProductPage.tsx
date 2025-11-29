@@ -34,7 +34,7 @@ export default function ProductPage() {
     } = useGetProductDetailsBySlugQuery(slug!)
 
     const { state, dispatch } = useContext(Store)
-    const { cart, userInfo } = state
+    const { userInfo } = state
     const navigate = useNavigate()
     const [selectedVariantIdx, setSelectedVariantIdx] = useState(0) 
     const [imgError, setImgError] = useState(false)
@@ -86,47 +86,37 @@ export default function ProductPage() {
         ? selectedVariant?.image
         : product?.image
 
-    const addToCartHandler = async () => {
-        let itemToAdd;
-        let currentCountInStock;
-
-        if (hasVariants && selectedVariant) {
-            itemToAdd = {
-                ...convertProductToCartItem(product!),
-                price: selectedVariant.price, 
-                countInStock: selectedVariant.countInStock,
-                image: selectedVariant.image,
-                variantId: selectedVariant._id,
-                variant: {
-                    color: selectedVariant.color,
-                    storage: selectedVariant.storage,
-                    ram: selectedVariant.ram,
-                },
-            };
-            currentCountInStock = selectedVariant.countInStock;
-        } else {
-            itemToAdd = convertProductToCartItem(product!);
-            currentCountInStock = product!.countInStock;
+        const addToCartHandler = async () => {
+      try {
+        // ✅ FIX: Xử lý trường hợp không có variant
+        const cartItem = convertProductToCartItem(
+          product!,
+          hasVariants && selectedVariantIdx !== -1 
+            ? product!.variants![selectedVariantIdx]
+            : undefined
+        )
+    
+        // ✅ Validate dữ liệu
+        if (!cartItem.price || cartItem.price <= 0) {
+          toast.error('Giá sản phẩm không hợp lệ')
+          return
         }
-
-        const existItem = cart.cartItems.find(
-            (x) => x._id === product!._id && (hasVariants ? x.variantId === itemToAdd.variantId : true)
-        );
-        
-        const quantity = existItem ? existItem.quantity + 1 : 1;
-
-        if (currentCountInStock < quantity) {
-            toast.warn('Sorry. Product is out of stock');
-            return;
+    
+        if (cartItem.countInStock <= 0) {
+          toast.error('Sản phẩm đã hết hàng')
+          return
         }
-
+    
         dispatch({
-            type: 'CART_ADD_ITEM',
-            payload: { ...itemToAdd, quantity, price: basePrice }, 
-        });
-        
-        toast.success('Product added to the cart');
-        navigate('/cart');
+          type: 'CART_ADD_ITEM',
+          payload: cartItem,
+        })
+        toast.success('Đã thêm vào giỏ hàng')
+        navigate('/cart')
+      } catch {
+        console.error('Add to cart error:')
+        toast.error('Lỗi khi thêm vào giỏ hàng')
+      }
     }
 
     if (isLoading) return <LoadingBox />
@@ -142,6 +132,16 @@ export default function ProductPage() {
         setSelectedVariantIdx(index);
         setImgError(false); // Reset lỗi ảnh khi đổi variant
     };
+
+
+    return (
+        <div className="min-h-screen bg-white pl-56 pr-6 pt-20 pb-10">
+            <Helmet>
+                <title>{product.name}</title>
+            </Helmet>
+            
+            <Row className="max-w-7xl mx-auto">
+                {/* =================================================
 
 
     return (

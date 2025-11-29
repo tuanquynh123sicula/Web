@@ -156,6 +156,19 @@ function ProductItem({ product }: { product?: Product | null }) {
         <div className="flex justify-start gap-3 items-center mt-2">
           
           {/* Nút + Thêm vào giỏ hàng */}
+          {product._id && (
+            <button
+              onClick={handleToggleCompare}
+              disabled={false} 
+              className={`text-sm transition p-1 text-blue-500 ${
+                inCompare 
+                  ? 'text-blue-600 font-semibold' 
+                  : 'text-blue-500 hover:text-blue-900'
+              }`}
+            >
+              + So sánh
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.preventDefault()
@@ -168,19 +181,6 @@ function ProductItem({ product }: { product?: Product | null }) {
           </button>
           
           {/* Nút + So sánh */}
-          {product._id && (
-            <button
-              onClick={handleToggleCompare}
-              disabled={false} 
-              className={`text-sm transition p-1 text-pink-500 ${
-                inCompare 
-                  ? 'text-blue-600 font-semibold' 
-                  : 'text-gray-700 hover:text-black'
-              }`}
-            >
-              + So sánh
-            </button>
-          )}
         </div>
       </div>
     </motion.div>

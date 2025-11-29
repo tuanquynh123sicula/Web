@@ -1,6 +1,5 @@
 import type { ApiError } from './types/ApiError'
-import type { Product, Variant } from './types/Product'
-import type { CartItem } from './types/Cart'
+import type { Product, Variant as ProductVariant } from './types/Product'
 
 
 export const getError = (error: ApiError) => {
@@ -11,21 +10,19 @@ export const getError = (error: ApiError) => {
    
 export const convertProductToCartItem = (
   product: Product,
-  variantInfo?: Variant
-): CartItem => {
-  const defaultVariant = product.variants[0] as Variant
-
+  selectedVariant?: ProductVariant
+) => {
+  // ✅ FIX: Kiểm tra selectedVariant trước
+  const variant = selectedVariant || product.variants?.[0]
+  
   return {
-    _id: product._id,
+    _id: product._id!,
     name: product.name,
     slug: product.slug,
-    image: product.image,
+    image: variant?.image || product.image,
+    price: variant?.price ?? product.price ?? 0, // ✅ Fallback to product.price
+    countInStock: variant?.countInStock ?? product.countInStock ?? 0,
     quantity: 1,
-    price: variantInfo ? variantInfo.price : defaultVariant.price,
-    countInStock: variantInfo
-      ? variantInfo.countInStock
-      : defaultVariant.countInStock,
-    variantInfo: variantInfo || defaultVariant,
   }
 }
 

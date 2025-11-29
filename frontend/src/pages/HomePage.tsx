@@ -441,7 +441,7 @@ const filteredProducts: Product[] =
             transition={{ duration: 0.2 }}
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
-            className="px-6 py-2 bg-black text-white font-semibold uppercase shadow hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed active:bg-gray-900 transition-colors duration-200"
+            className="px-6 py-2 text-black font-semibold uppercase shadow hover:bg-gray-100 disabled:bg-white disabled:cursor-not-allowed active:bg-gray-200 transition-colors duration-200"
           >
             ← Trước
           </motion.button>
@@ -457,7 +457,7 @@ const filteredProducts: Product[] =
             disabled={
               (currentPage + 1) * PRODUCTS_PER_PAGE >= filteredProducts.length
             }
-            className="px-6 py-2 bg-black text-white font-semibold uppercase shadow hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed active:bg-gray-900 transition-colors duration-200"
+            className="px-6 py-2 text-black font-semibold uppercase shadow hover:bg-gray-100 disabled:bg-white disabled:cursor-not-allowed active:bg-gray-200 transition-colors duration-200"
           >
             Sau →
           </motion.button>

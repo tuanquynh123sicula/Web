@@ -70,7 +70,7 @@ export default function SignupPage() {
                             type="text"
                             required
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300 hover:scale-[1.01] active:scale-[0.99]"
                         />
                     </div>
 
@@ -84,7 +84,7 @@ export default function SignupPage() {
                             type="email"
                             required
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300 hover:scale-[1.01] active:scale-[0.99]"
                         />
                     </div>
 
@@ -98,7 +98,7 @@ export default function SignupPage() {
                             type="password"
                             required
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300 hover:scale-[1.01] active:scale-[0.99]"
                         />
                     </div>
                     
@@ -112,7 +112,7 @@ export default function SignupPage() {
                             type="password"
                             required
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300"
+                            className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition duration-300 hover:scale-[1.01] active:scale-[0.99]"
                         />
                     </div>
 
@@ -121,9 +121,9 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={isPending || !isFormValid}
-                            className={`w-full py-3 px-6 font-bold transition duration-300 transform 
-                                ${isFormValid ? 'bg-black hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'} 
-                                text-white disabled:opacity-70 disabled:hover:bg-gray-400`}
+                            className={`w-full py-3 px-6 font-bold transition duration-300 transform border border-black
+                                ${isFormValid ? 'hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'} 
+                                text-black disabled:opacity-70 disabled:hover:bg-gray-400`}
                         >
                             {isPending ? <LoadingBox /> : 'Đăng ký'}
                         </button>

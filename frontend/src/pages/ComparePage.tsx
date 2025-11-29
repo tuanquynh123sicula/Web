@@ -165,7 +165,7 @@ export default function ComparePage() {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="px-8 py-3 bg-black text-white border border-black hover:bg-gray-800 transition duration-300 font-semibold shadow-md"
+              className="px-8 py-3 text-black border border-black hover:bg-gray-100 hover:scale-105 transition duration-300 font-semibold shadow-md"
             >
               BẮT ĐẦU MUA SẮM
             </button>
