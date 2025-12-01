@@ -12,6 +12,7 @@ import type { ApiError } from '../types/ApiError'
 import axios from 'axios'
 import type { CartItem, ShippingAddress } from '@/types/Cart'
 import { FaTag } from 'react-icons/fa'
+import apiClient from '@/apiClient'
 
 export type CreateOrderInput = {
   orderItems: CartItem[]
@@ -52,24 +53,29 @@ export default function PlaceOrderPage() {
     ((userInfo?.tier as 'regular' | 'vip' | 'new' | undefined) ?? 'regular')
   )
 
-  useEffect(() => {
+
+    useEffect(() => {
     let mounted = true
     if (!userInfo) {
       navigate('/signin')
       return
     }
-    axios
-      .get('http://localhost:4000/api/users/profile', {
-        headers: { Authorization: `Bearer ${userInfo.token}` },
-      })
+  
+    const storedUserInfo = localStorage.getItem('userInfo')
+    console.log('Stored userInfo:', storedUserInfo)
+    console.log('Context userInfo:', userInfo)
+  
+    apiClient
+      .get('/api/users/profile')
       .then((res) => {
         if (mounted) {
           const t = (res.data?.tier as 'regular' | 'vip' | 'new' | undefined) ?? 'regular'
           setResolvedTier(t)
         }
       })
-      .catch(() => {
-        // giữ nguyên tier cũ nếu lỗi
+      .catch((err) => {
+        console.error('Failed to fetch user profile:', err.response?.status, err.message)
+        setResolvedTier('regular')
       })
     return () => {
       mounted = false

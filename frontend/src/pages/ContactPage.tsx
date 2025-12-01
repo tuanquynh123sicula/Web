@@ -82,8 +82,8 @@ export default function ContactPage() {
                       </p>
                       <p className="mt-1 text-sm text-gray-600">
                         Email:{" "}
-                        <a href="mailto:support@yourecom.com" className="font-medium text-indigo-600 hover:underline">
-                          support@yourecom.com
+                        <a href="mailto:support@techhub.com" className="font-medium text-indigo-600 hover:underline">
+                          support@techhub.com
                         </a>
                       </p>
                     </>
@@ -100,7 +100,7 @@ export default function ContactPage() {
                 },
                 {
                   title: "Địa chỉ",
-                  content: <p className="mt-2 text-sm text-gray-600">Số 123, Đường ABC, Quận XYZ, Thành phố</p>,
+                  content: <p className="mt-2 text-sm text-gray-600">125/9 Nguyễn Cửu Vân, P.17, Q.Bình Thạnh, TP.HCM</p>,
                 },
               ].map((item, index) => (
                 <motion.div

@@ -17,8 +17,11 @@ export const generateToken = (user: User) => {
 
 export const isAuth = (req: Request, res: Response, next: NextFunction) => {
   const { authorization } = req.headers
+  
+  
   if (authorization) {
-    const token = authorization.slice(7)
+    const token = authorization.slice(7) // Bỏ "Bearer "
+    
     jwt.verify(
       token,
       process.env.JWT_SECRET || 'somethingsecret',
@@ -26,7 +29,6 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
         if (err) {
           res.status(401).json({ message: 'Invalid or expired token' })
         } else {
-          // Ép kiểu isAdmin về boolean
           req.user = {
             ...(decode as JwtPayload),
             isAdmin: Boolean((decode as any).isAdmin),
@@ -48,7 +50,6 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction): void => {
-  // console.log('isAdmin check:', req.user)
   if (req.user && req.user.isAdmin) {
     next()
   } else {

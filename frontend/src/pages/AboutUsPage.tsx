@@ -17,7 +17,7 @@ export default function AboutUsPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Về Chúng Tôi</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Chào mừng bạn đến với{" "}
-            <span className="font-semibold text-blue-600">TechZone</span> – nơi
+            <span className="font-semibold text-blue-600">TechHub</span> – nơi
             mang đến trải nghiệm mua sắm điện tử tuyệt vời nhất với sản phẩm
             chất lượng, giá cả cạnh tranh và dịch vụ tận tâm.
           </p>
@@ -39,7 +39,7 @@ export default function AboutUsPage() {
           <div>
             <h2 className="text-2xl font-semibold mb-4">Sứ Mệnh Của Chúng Tôi</h2>
             <p className="text-gray-700 leading-relaxed">
-              Tại TechZone, chúng tôi không chỉ bán sản phẩm – chúng tôi mang đến
+              Tại TechHub, chúng tôi không chỉ bán sản phẩm – chúng tôi mang đến
               giá trị, niềm tin và trải nghiệm mua sắm khác biệt...
             </p>
           </div>

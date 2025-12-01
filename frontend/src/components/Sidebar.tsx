@@ -10,19 +10,19 @@ type Item = {
 }
 
 const sidebarItems: Item[] = [
-  { title: 'HOME', href: '/' },
-  { title: 'ABOUT US', href: '/about' },
+  { title: 'Trang chủ', href: '/' },
+  { title: 'Về chúng tôi', href: '/about' },
   {
-    title: 'SHOP',
+    title: 'Cửa hàng',
     href: '/products',
     children: [
       { title: 'Điện thoại', href: '/products?category=Phone' },
-      { title: 'Laptop', href: '/products?category=Laptop' },
+      { title: 'Máy tính xách tay', href: '/products?category=Laptop' },
       { title: 'Phụ kiện', href: '/products?category=Accessories' },
     ],
   },
   {
-    title: 'BRANDS',
+    title: 'Thương hiệu',
     href: '/products',
     children: [
       { title: 'Apple', href: '/products?category=Apple' },
@@ -31,8 +31,8 @@ const sidebarItems: Item[] = [
       { title: 'Honor', href: '/products?category=Honor' },
     ],
   },
-  { title: 'BLOGS', href: '/blogs' },
-  { title: 'CONTACT', href: '/contact' },
+  { title: 'Bài viết', href: '/blogs' },
+  { title: 'Liên hệ', href: '/contact' },
 ]
 
 

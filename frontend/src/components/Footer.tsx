@@ -36,7 +36,7 @@ function Footer() {
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200">
-                <FaPhoneAlt /> 0934 136 198
+                <FaPhoneAlt /> 0123 456 789
               </p>
               <p className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200">
                 <FaEnvelope /> contact@techhub.com
@@ -45,7 +45,7 @@ function Footer() {
 
                 {/* FOLLOW US (Gộp từ cột 4 cũ) */}
                 <h3 className="font-semibold text-lg mt-6 mb-4 text-white">
-                    FOLLOW US
+                    Theo dõi chúng tôi
                 </h3>
                 <div className="flex gap-4">
                     {[

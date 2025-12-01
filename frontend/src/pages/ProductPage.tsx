@@ -308,7 +308,7 @@ export default function ProductPage() {
                                                         variant="dark"
                                                         className="w-full hover:bg-gray-800 transition-colors py-3 font-bold text-sm shadow-lg hover:scale-105 transition-transform" 
                                                     >
-                                                    🛒 Thêm vào Giỏ 
+                                                    Thêm vào Giỏ 
                                                     </Button>
                                                 </div>
                                             </ListGroup.Item>

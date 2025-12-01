@@ -173,7 +173,7 @@ export default function CartPage() {
                             hover:bg-gray-800 active:bg-gray-900 
                             hover:scale-[1.01] active:scale-[0.98]"
                         >
-                          🛍️ Tiến hành Thanh toán
+                          Tiến hành Thanh toán
                         </Button>
                       </div>
                     </ListGroup.Item>

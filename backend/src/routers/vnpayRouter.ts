@@ -17,7 +17,7 @@ export const vnpayRouter = express.Router()
 // ====================
 // ⚙️ Đọc cấu hình ENV
 // ====================
-const vnp_TmnCode = process.env.VNP_TMNCODE || ''
+const vnp_TmnCode = process.env.VNP_TMNCODE || 'TMNCODE'
 const vnp_HashSecret = process.env.VNP_HASHSECRET || ''
 const vnp_Url = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
 // const VNP_RETURN_URL = process.env.VNP_RETURNURL || 'http://localhost:5173/order/:id'
@@ -29,6 +29,10 @@ const FRONTEND_URL = 'http://localhost:5173'
 // =============================
 vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
   try {
+    console.log('🔍 VNP_TMNCODE:', vnp_TmnCode)
+    console.log('🔍 VNP_HASHSECRET length:', vnp_HashSecret.length)
+    console.log('🔍 VNP_URL:', vnp_Url)
+    
     const { amount, bankCode, orderId } = req.body
 
     if (!amount || !orderId) {
@@ -43,7 +47,7 @@ vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
     const expireDate = moment(date).add(15, 'minutes').format('YYYYMMDDHHmmss')
     const orderInfo = `Thanh toan don hang ${orderId}`
     
-    const vnp_TxnRef = orderId // 🔑 dùng orderId làm mã giao dịch để đối chiếu dễ hơn
+    const vnp_TxnRef = orderId
 
     const vnp_Params: Record<string, string> = {
       vnp_Version: '2.1.0',
@@ -71,10 +75,10 @@ vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
 
     const paymentUrl = `${vnp_Url}?${querystring.stringify(sortedParams, { encode: false })}`
 
-    console.log('Payment URL:', paymentUrl)
+    console.log('✅ Payment URL created:', paymentUrl)
     res.json({ paymentUrl })
   } catch (err) {
-    console.error('Error creating VNPay URL:', err)
+    console.error('❌ Error:', err)
     res.status(500).json({ message: 'Tạo URL thanh toán thất bại' })
   }
 })
@@ -146,13 +150,13 @@ console.log('🔹 orderId nhận được:', orderId)
       console.log('🔹 responseCode nhận được:', responseCode)
       if (responseCode === '00') {
         await OrderModel.updateOne(
-  { _id: orderId },
-  {
-    isPaid: true,
-    paidAt: new Date(),
-    paymentResult: vnp_Params, // bạn có thể lưu toàn bộ thông tin VNPay trả về
-  }
-)
+  { _id: new mongoose.Types.ObjectId(orderId) },
+            {
+                isPaid: true,
+                paidAt: new Date(),
+                paymentResult: vnp_Params,
+            }
+        )
 console.log('🔹 Kết quả update order:',)
         return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' })
       } else {

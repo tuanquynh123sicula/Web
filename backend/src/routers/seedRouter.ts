@@ -21,5 +21,28 @@ export const seedRouter = express.Router()
         res.json({ createdProducts, createdUsers })
       })
     )
+    seedRouter.get(
+      '/users',
+      asyncHandler(async (req: Request, res: Response) => {
+        await UserModel.deleteMany({})
+        const createdUsers = await UserModel.insertMany([
+          {
+            name: 'Admin',
+            email: 'admin@example.com',
+            password: 'admin123',
+            isAdmin: true,
+            tier: 'vip', // Thêm tier
+          },
+          {
+            name: 'Tuấn Quỳnh',
+            email: 'quynh@example.com',
+            password: '123',
+            isAdmin: false,
+            tier: 'regular', // Thêm tier
+          },
+        ])
+        res.json(createdUsers)
+      })
+    )
     export default seedRouter
 

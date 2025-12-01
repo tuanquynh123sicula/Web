@@ -26,16 +26,19 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
         if (err) {
           res.status(401).json({ message: 'Invalid or expired token' })
         } else {
-          req.user = {
-            ...(decode as JwtPayload),
-            isAdmin: Boolean((decode as any).isAdmin),
-            token,
-          } as {
+          const payload = decode as JwtPayload & {
             _id: string
             name: string
             email: string
             isAdmin: boolean
-            token: string
+          }
+
+          req.user = {
+            _id: payload._id,
+            name: payload.name,
+            email: payload.email,
+            isAdmin: payload.isAdmin,
+            token: token, // Gán token đã tách
           }
           next()
         }

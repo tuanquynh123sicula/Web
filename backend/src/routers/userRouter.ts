@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import asyncHandler from 'express-async-handler'
-import { UserModel } from '../models/userModel'
-import { isAuth } from '../utils'
+import { User, UserModel } from '../models/userModel'
+import { generateToken, isAuth } from '../utils'
 
 export const userRouter = express.Router()
 
@@ -10,7 +10,6 @@ userRouter.get(
     '/profile',
     isAuth,
     asyncHandler(async (req: Request, res: Response) => {
-        console.log('Fetching user profile for:', req.user?._id)
         
         const user = await UserModel.findById(req.user?._id).select('-password')
         
@@ -35,7 +34,7 @@ userRouter.post(
                 name: user.name,
                 email: user.email,
                 isAdmin: user.isAdmin,
-                token: 'your-jwt-token', // Thay bằng JWT nếu có
+                token: generateToken(user as User),
             })
         } else {
             res.status(401).json({ message: 'Invalid email or password' })
@@ -57,7 +56,7 @@ userRouter.post(
             name: created.name,
             email: created.email,
             isAdmin: created.isAdmin,
-            token: 'your-jwt-token',
+            token: generateToken(created as User),
         })
     })
 )

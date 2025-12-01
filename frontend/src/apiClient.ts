@@ -40,3 +40,4 @@ export const getImageUrl = (imagePath: string) => {
   if (imagePath.startsWith('http')) return imagePath 
   return `http://localhost:4000${imagePath}` 
 }
+
