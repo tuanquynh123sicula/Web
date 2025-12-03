@@ -14,9 +14,7 @@ dotenv.config()
 
 export const vnpayRouter = express.Router()
 
-// ====================
-// ⚙️ Đọc cấu hình ENV
-// ====================
+// Đọc cấu hình ENV
 const vnp_TmnCode = process.env.VNP_TMNCODE || 'TMNCODE'
 const vnp_HashSecret = process.env.VNP_HASHSECRET || ''
 const vnp_Url = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
@@ -24,9 +22,7 @@ const vnp_Url = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/v
 const FRONTEND_URL = 'http://localhost:5173'
 
 
-// =============================
-// 1️⃣ TẠO URL THANH TOÁN
-// =============================
+// TẠO URL THANH TOÁN
 vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
   try {
     console.log('🔍 VNP_TMNCODE:', vnp_TmnCode)
@@ -84,9 +80,7 @@ vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
 })
     
 
-// =============================
-// 2️⃣ XỬ LÝ RETURN (client redirect)
-// =============================
+// XỬ LÝ RETURN (client redirect)
 vnpayRouter.get(
   '/vnpay_return',
   asyncHandler(async (req: Request, res: Response) => {
@@ -106,7 +100,7 @@ vnpayRouter.get(
     const hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET as string);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    // ✅ Nếu VNPay xác nhận thanh toán thành công
+    // Nếu VNPay xác nhận thanh toán thành công
     if (secureHash === signed && rspCode === '00') {
       await OrderModel.updateOne(
         { _id: new mongoose.Types.ObjectId(orderId) },
@@ -127,9 +121,7 @@ vnpayRouter.get(
 );
 
 
-// =============================
-// 3️⃣ XỬ LÝ IPN (VNPay gọi lại server xác nhận)
-// =============================
+//  XỬ LÝ IPN (VNPay gọi lại server xác nhận)
 vnpayRouter.get('/vnpay_ipn', async (req: Request, res: Response) => {
   try {
     const vnp_Params: any = { ...req.query }
@@ -171,9 +163,7 @@ console.log('🔹 Kết quả update order:',)
   }
 })
 
-// =============================
-// 🧩 Hàm sắp xếp object chuẩn VNPay
-// =============================
+// Hàm sắp xếp object chuẩn VNPay
 function sortObject(obj: Record<string, any>) {
   const sorted: Record<string, any> = {}
   const keys = Object.keys(obj).sort()

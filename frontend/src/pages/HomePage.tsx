@@ -3,7 +3,6 @@ import LoadingBox from '@/components/LoadingBox'
 import MessageBox from '@/components/MessageBox'
 import ProductItem from '@/components/ProductItem'
 import { useGetProductsQuery } from '@/hooks/productHooks'
-// 💡 THAY ĐỔI TỪ Scale SANG ArrowLeftRight
 import { ArrowLeftRight } from 'lucide-react' 
 import { useGetCompareQuery } from '@/hooks/compareHooks'
 import type { ApiError } from '@/types/ApiError'
@@ -135,7 +134,7 @@ const filteredProducts: Product[] =
     <div className="bg-white text-gray-800 ">
       
       {/* 🌟 HERO BANNER */}
-      <section className="relative max-w-screen-2xl mx-auto shadow-lg overflow-hidden transition-shadow duration-500">
+      <section className="relative max-w-10xl mx-auto shadow-lg overflow-hidden transition-shadow duration-500">
         <Swiper
           modules={[Autoplay, Pagination]}
           slidesPerView={1}
@@ -151,7 +150,6 @@ const filteredProducts: Product[] =
                     src={b} 
                     alt={`Banner ${i + 1}`} 
                     className="w-full h-full object-cover transition-transform duration-1000 ease-out" 
-                    // Thêm nhẹ hiệu ứng Zoom cho Banner
                     style={{ transform: i === 0 ? 'scale(1.03)' : 'scale(1)' }}
                 />
               </div>

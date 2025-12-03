@@ -37,6 +37,7 @@ import ProfilePage from './pages/ProfilePage'
 import WishlistPage from './pages/WishlistPage'
 import ComparePage from './pages/ComparePage'
 import VouchersPage from './admin/pages/VouchersPage'
+import ReportPage from './admin/pages/ReportPage'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -61,6 +62,7 @@ const router = createBrowserRouter(
         <Route path="placeorder" element={<PlaceOrderPage />} />
         <Route path="order/:id" element={<OrderPage />} />
         <Route path="orderhistory" element={<OrderHistoryPage />} />
+        <Route path="reports" element={<ReportPage />} />
         <Route path="admin/*" element={<AdminApp />} />
         <Route path="about" element={<AboutUsPage />} />
         <Route path="blog/:id" element={<BlogDetailPage />} />
@@ -79,6 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
+          {/* ❌ BỎ ScrollToTop khỏi đây */}
           {/* <ReactQueryDevtools initialIsOpen={false} /> */}
         </QueryClientProvider>
       </HelmetProvider>

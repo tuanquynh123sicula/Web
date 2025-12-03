@@ -44,6 +44,27 @@ export default function PlaceOrderPage() {
   const { state, dispatch } = useContext(Store)
   const { cart, userInfo } = state
 
+  // ✅ Kiểm tra cơ bản
+  useEffect(() => {
+    if (!userInfo) {
+      navigate('/signin')
+      return
+    }
+    
+    if (!cart.paymentMethod) {
+      navigate('/payment')
+      return
+    }
+
+    // ⭐ CHỈ REDIRECT NẾU GIỎ HÀNG RỖNG VÀ KHÔNG CÓ SHIPPING ADDRESS
+    // (Nghĩa là user chưa bao giờ đặt hàng, không phải đang quay lại từ OrderPage)
+    if (cart.cartItems.length === 0 && !cart.shippingAddress.address) {
+      toast.info('Giỏ hàng của bạn đang trống.')
+      navigate('/')
+      return
+    }
+  }, [cart.paymentMethod, userInfo, navigate])
+
   const [couponCode, setCouponCode] = useState('')
   const [couponDiscount, setCouponDiscount] = useState(0)
   const [appliedCoupon, setAppliedCoupon] = useState<Voucher | null>(null)
@@ -53,8 +74,7 @@ export default function PlaceOrderPage() {
     ((userInfo?.tier as 'regular' | 'vip' | 'new' | undefined) ?? 'regular')
   )
 
-
-    useEffect(() => {
+  useEffect(() => {
     let mounted = true
     if (!userInfo) {
       navigate('/signin')
@@ -178,6 +198,13 @@ export default function PlaceOrderPage() {
       return
     }
 
+    // ✅ KIỂM TRA GIỎ HÀNG RỖNG TRƯỚC KHI ĐẶT HÀNG
+    if (cart.cartItems.length === 0) {
+      toast.error('Giỏ hàng của bạn đang trống!')
+      navigate('/cart')
+      return
+    }
+
     try {
       const data = await createOrder({
         orderItems: cart.cartItems,
@@ -189,12 +216,10 @@ export default function PlaceOrderPage() {
         discount: tierDiscount,
         couponDiscount: couponDiscount,
         totalPrice,
-        voucherId: appliedCoupon?._id, // ✅ Gửi voucherId
+        voucherId: appliedCoupon?._id,
       } as CreateOrderInput)
 
       localStorage.removeItem('cartItems')
-      localStorage.removeItem('shippingAddress')
-      localStorage.removeItem('paymentMethod')
       dispatch({ type: 'CART_CLEAR' })
 
       if (cart.paymentMethod === 'VNPAY') {
@@ -202,18 +227,18 @@ export default function PlaceOrderPage() {
           amount: data.order.totalPrice,
           orderId: data.order._id,
         })
+        localStorage.removeItem('shippingAddress')
+        localStorage.removeItem('paymentMethod')
         window.location.href = response.data.paymentUrl
       } else {
+        localStorage.removeItem('shippingAddress')
+        localStorage.removeItem('paymentMethod')
         navigate(`/order/${data.order._id}`)
       }
     } catch (err) {
       toast.error(getError(err as ApiError))
     }
   }
-
-  useEffect(() => {
-    if (!cart.paymentMethod) navigate('/payment')
-  }, [cart, navigate])
 
   const imageUrl = (src?: string) => {
     if (!src) return '/images/placeholder.png'
@@ -223,6 +248,15 @@ export default function PlaceOrderPage() {
     return `/images/${src}`
   }
 
+  // ✅ CHO PHÉP HIỂN THỊ TRANG NẾU CÓ SHIPPING ADDRESS (User đang quay lại xem)
+  if (cart.cartItems.length === 0 && !cart.shippingAddress.address) {
+    return <LoadingBox />
+  }
+
+  // ✅ NẾU GIỎ HÀNG RỖNG NHƯNG CÓ SHIPPING ADDRESS - CHO PHÉP XEM
+  // Nhưng DISABLE NÚT ĐẶT HÀNG
+  const canPlaceOrder = cart.cartItems.length > 0
+
   return (
     <div className="min-h-screen bg-[#f5f5f5] pl-56 pr-6 pt-20 pb-10">
       <div className="max-w-7xl mx-auto">
@@ -231,6 +265,19 @@ export default function PlaceOrderPage() {
           <title>Đặt hàng</title>
         </Helmet>
         <h1 className="text-3xl font-bold my-4 text-gray-900">Xác nhận đơn hàng</h1>
+
+        {/* ✅ HIỂN THỊ THÔNG BÁO NẾU GIỎ HÀNG RỖNG */}
+        {!canPlaceOrder && (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 mb-4 shadow-md">
+            <p className="font-semibold">⚠️ Đơn hàng đã được đặt. Giỏ hàng hiện tại đang trống.</p>
+            <p className="text-sm mt-1">
+              <Link to="/orderhistory" className="text-blue-600 hover:underline font-medium">
+                Xem lịch sử đơn hàng
+              </Link>
+            </p>
+          </div>
+        )}
+
         <Row className='g-4'>
           <Col md={8}>
             {/* Địa chỉ giao hàng */}
@@ -261,39 +308,48 @@ export default function PlaceOrderPage() {
             <Card className="mb-4 hover:bg-gray-50 hover:shadow-xl border-md border-1">
               <Card.Body className="p-4">
                 <Card.Title className="text-xl font-bold text-gray-800 mb-3">Sản phẩm</Card.Title>
-                <ListGroup variant="flush" className="border-t border-gray-200">
-                  {cart.cartItems.map((item) => (
-                    <ListGroup.Item key={item._id} className="bg-white px-0 py-3 border-b">
-                      <Row className="align-items-center">
-                        <Col md={6} className="flex items-center">
-                          <img
-                            src={imageUrl(item.image)}
-                            alt={item.name}
-                            className="w-16 h-16 object-contain rounded-none mr-3"
-                            style={{ border: '1px solid #e0e0e0' }}
-                          />
-                          <div>
-                            <Link to={`/product/${item.slug ?? item._id}`} className="font-semibold text-gray-700 hover:text-black transition-colors duration-200">
-                              {item.name}
-                            </Link>
-                            {item.variant && (
-                              <div className="text-muted text-xs mt-1">
-                                {item.variant.color} / {item.variant.storage} / {item.variant.ram}
-                              </div>
-                            )}
-                          </div>
-                        </Col>
-                        <Col md={3} className="text-center font-semibold text-gray-700 transition-colors duration-200">
-                          {item.quantity}
-                        </Col>
-                        <Col md={3} className="text-right font-bold text-gray-800 transition-colors duration-200">
-                          {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
-                        </Col>
-                      </Row>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-                <Link to="/cart" className="text-blue-600 hover:text-blue-800 font-medium mt-3 block transition-colors duration-300">Chỉnh sửa giỏ hàng</Link>
+                {cart.cartItems.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-lg font-semibold mb-2">Giỏ hàng trống</p>
+                    <p className="text-sm">Đơn hàng đã được đặt thành công.</p>
+                  </div>
+                ) : (
+                  <ListGroup variant="flush" className="border-t border-gray-200">
+                    {cart.cartItems.map((item) => (
+                      <ListGroup.Item key={item._id} className="bg-white px-0 py-3 border-b">
+                        <Row className="align-items-center">
+                          <Col md={6} className="flex items-center">
+                            <img
+                              src={imageUrl(item.image)}
+                              alt={item.name}
+                              className="w-16 h-16 object-contain rounded-none mr-3"
+                              style={{ border: '1px solid #e0e0e0' }}
+                            />
+                            <div>
+                              <Link to={`/product/${item.slug ?? item._id}`} className="font-semibold text-gray-700 hover:text-black transition-colors duration-200">
+                                {item.name}
+                              </Link>
+                              {item.variant && (
+                                <div className="text-muted text-xs mt-1">
+                                  {item.variant.color} / {item.variant.storage} / {item.variant.ram}
+                                </div>
+                              )}
+                            </div>
+                          </Col>
+                          <Col md={3} className="text-center font-semibold text-gray-700 transition-colors duration-200">
+                            {item.quantity}
+                          </Col>
+                          <Col md={3} className="text-right font-bold text-gray-800 transition-colors duration-200">
+                            {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                          </Col>
+                        </Row>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                )}
+                <Link to="/cart" className="text-blue-600 hover:text-blue-800 font-medium mt-3 block transition-colors duration-300">
+                  Chỉnh sửa giỏ hàng
+                </Link>
               </Card.Body>
             </Card>
           </Col>
@@ -413,13 +469,17 @@ export default function PlaceOrderPage() {
                         type="button"
                         variant="dark"
                         onClick={handleVNPayPayment}
-                        disabled={cart.cartItems.length === 0 || isPending}
+                        disabled={!canPlaceOrder || isPending}
                         className="py-2 text-base font-semibold hover:bg-gray-800 active:bg-gray-900 hover:scale-105 transition-transform"
                       >
-                        {isPending ? <LoadingBox /> : (
+                        {isPending ? (
+                          <LoadingBox />
+                        ) : !canPlaceOrder ? (
+                          '✓ Đơn hàng đã được đặt'
+                        ) : (
                           cart.paymentMethod === 'VNPAY'
-                            ? '💳 Đặt hàng và Thanh toán VNPay'
-                            : '💵 Đặt hàng (Thanh toán khi nhận)'
+                            ? '🛒 Đặt hàng và Thanh toán VNPay'
+                            : '🛒 Đặt hàng (Thanh toán khi nhận)'
                         )}
                       </Button>
                     </div>

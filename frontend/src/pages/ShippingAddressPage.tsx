@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import CheckoutSteps from '../components/CheckoutSteps'
 import Footer from '../components/Footer'
 import { Store } from '../Store'
+import { toast } from 'sonner'
 
 export default function ShippingAddressPage() {
   const navigate = useNavigate()
@@ -28,6 +29,29 @@ export default function ShippingAddressPage() {
 
   const submitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault()
+
+    // Validation
+    if (!fullName.trim()) {
+      toast.error('Vui lòng nhập họ và tên!')
+      return
+    }
+    if (!address.trim()) {
+      toast.error('Vui lòng nhập địa chỉ chi tiết!')
+      return
+    }
+    if (!city.trim()) {
+      toast.error('Vui lòng nhập tỉnh/thành phố!')
+      return
+    }
+    if (!postalCode.trim()) {
+      toast.error('Vui lòng nhập mã bưu điện!')
+      return
+    }
+    if (!country.trim()) {
+      toast.error('Vui lòng nhập quốc gia!')
+      return
+    }
+
     dispatch({
       type: 'SAVE_SHIPPING_ADDRESS',
       payload: {
@@ -70,56 +94,66 @@ export default function ShippingAddressPage() {
 
               {/* FULL NAME */}
               <Form.Group className="mb-4" controlId="fullName">
-                <Form.Label className="font-semibold text-gray-700">Họ và Tên</Form.Label>
+                <Form.Label className="font-semibold text-gray-700">
+                  Họ và Tên <span className="text-red-500">*</span>
+                </Form.Label>
                 <Form.Control
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  required
                   className="focus:border-black focus:ring-black transition-all duration-200"
+                  placeholder="Nhập họ và tên"
                 />
               </Form.Group>
 
               {/* ADDRESS */}
               <Form.Group className="mb-4" controlId="address">
-                <Form.Label className="font-semibold text-gray-700">Địa chỉ chi tiết</Form.Label>
+                <Form.Label className="font-semibold text-gray-700">
+                  Địa chỉ chi tiết <span className="text-red-500">*</span>
+                </Form.Label>
                 <Form.Control
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  required
                   className="focus:border-black focus:ring-black transition-all duration-200"
+                  placeholder="Nhập địa chỉ chi tiết"
                 />
               </Form.Group>
 
               {/* CITY */}
               <Form.Group className="mb-4" controlId="city">
-                <Form.Label className="font-semibold text-gray-700">Tỉnh/Thành phố</Form.Label>
+                <Form.Label className="font-semibold text-gray-700">
+                  Tỉnh/Thành phố <span className="text-red-500">*</span>
+                </Form.Label>
                 <Form.Control
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  required
                   className="focus:border-black focus:ring-black transition-all duration-200"
+                  placeholder="Nhập tỉnh/thành phố"
                 />
               </Form.Group>
 
               {/* POSTAL CODE */}
               <Form.Group className="mb-4" controlId="postalCode">
-                <Form.Label className="font-semibold text-gray-700">Mã bưu điện</Form.Label>
+                <Form.Label className="font-semibold text-gray-700">
+                  Mã bưu điện <span className="text-red-500">*</span>
+                </Form.Label>
                 <Form.Control
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  required
                   className="focus:border-black focus:ring-black transition-all duration-200"
+                  placeholder="Nhập mã bưu điện"
                 />
               </Form.Group>
 
               {/* COUNTRY */}
               <Form.Group className="mb-6" controlId="country">
-                <Form.Label className="font-semibold text-gray-700">Quốc gia</Form.Label>
+                <Form.Label className="font-semibold text-gray-700">
+                  Quốc gia <span className="text-red-500">*</span>
+                </Form.Label>
                 <Form.Control
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  required
                   className="focus:border-black focus:ring-black transition-all duration-200"
+                  placeholder="Nhập quốc gia"
                 />
               </Form.Group>
 

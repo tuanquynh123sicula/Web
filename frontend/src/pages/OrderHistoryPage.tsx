@@ -158,7 +158,6 @@ export default function OrderHistoryPage() {
                           variant="danger"
                           size="sm"
                           onClick={() => handleDelete(order._id)}
-                          // Chỉ cho phép xóa nếu trạng thái là Đã hủy (canceled)
                           disabled={deleteOrder.isPending || !canDelete} 
                         >
                           Xóa

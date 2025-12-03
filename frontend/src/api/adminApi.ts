@@ -3,6 +3,7 @@ import { User } from '@/types/User'
 import { Order } from '@/types/Order'
 import { Blog } from '@/types/Blog'
 import apiClient from '../apiClient'
+import { ReportSummary } from '../../../../backend/src/types/Report' // Import Report type
 
 export const authHeader = () => {
   const raw = localStorage.getItem('userInfo')
@@ -102,6 +103,15 @@ export const getUserOrders = async (id: string) => {
   })
   return data
 }
+
+// === REPORTS / THỐNG KÊ MỚI ===
+export const getReportSummary = async (): Promise<ReportSummary> => {
+  const { data } = await apiClient.get<ReportSummary>('/api/admin/reports/summary', {
+    headers: authHeader(),
+  })
+  return data
+}
+
 
 // === BLOGS ===
 export const getAllBlogs = async () => {

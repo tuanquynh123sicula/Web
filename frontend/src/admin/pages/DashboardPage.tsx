@@ -134,7 +134,7 @@ export default function DashboardPage() {
                 formatter={(value: ValueType) => formatVND(Number(value))}
                 contentStyle={{ transition: "all 0.3s ease" }}
               />
-              <Bar dataKey="sales" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="sales" name="Doanh thu" fill="#3b82f6" radius={[0, 0, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

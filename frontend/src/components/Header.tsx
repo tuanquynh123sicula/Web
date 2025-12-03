@@ -160,7 +160,7 @@ export default function Header() {
                             className="block px-3 py-2 hover:bg-gray-50 text-red-600 font-semibold transition-colors duration-200 rounded-none"
                             onClick={() => setOpenUser(false)}
                         >
-                            Dashboard Admin
+                            Bảng điều khiển quản trị
                         </Link>
                     )}
                     <button onClick={signoutHandler} className="w-full text-left px-3 py-2 hover:bg-gray-50 text-gray-700 border-t mt-1 transition-colors duration-200 rounded-none">

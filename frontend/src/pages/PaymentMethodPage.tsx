@@ -6,17 +6,16 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import CheckoutSteps from '../components/CheckoutSteps'
 import Footer from '../components/Footer'
+import { toast } from 'sonner'
 
 export default function PaymentMethodPage() {
   const navigate = useNavigate()
   const { state, dispatch } = useContext(Store)
   const {
-    cart: { shippingAddress, paymentMethod },
+    cart: { shippingAddress },
   } = state
 
-  const [paymentMethodName, setPaymentMethodName] = useState(
-    paymentMethod || 'VNPAY'
-  )
+  const [paymentMethodName, setPaymentMethodName] = useState('')
 
   useEffect(() => {
     if (!shippingAddress.address) {
@@ -26,6 +25,13 @@ export default function PaymentMethodPage() {
 
   const submitHandler = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation
+    if (!paymentMethodName) {
+      toast.error('Vui lòng chọn phương thức thanh toán!')
+      return
+    }
+
     dispatch({ type: 'SAVE_PAYMENT_METHOD', payload: paymentMethodName })
     localStorage.setItem('paymentMethod', paymentMethodName)
     navigate('/placeorder')
@@ -46,7 +52,7 @@ export default function PaymentMethodPage() {
             </Helmet>
 
             <h1 className="text-3xl font-bold my-4 text-gray-900">
-              Phương thức Thanh toán
+              Phương thức Thanh toán <span className="text-red-500">*</span>
             </h1>
 
             <Form onSubmit={submitHandler}>

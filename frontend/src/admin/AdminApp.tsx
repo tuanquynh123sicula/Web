@@ -1,12 +1,13 @@
 import React from 'react'
 import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom'
-import DashboardPage from './pages/DashboardPage'
-import OrdersPage from './pages/OrdersPage'
-import ProductsPage from './pages/ProductsPage'
-import UsersPage from './pages/UsersPage'
-import AdminProtectedRoute from './components/AdminProtectedRoute'
-import BlogsPage from './pages/BlogPage'
-import VouchersPage from './pages/VouchersPage'
+import DashboardPage from './pages/DashboardPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import OrdersPage from './pages/OrdersPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import ProductsPage from './pages/ProductsPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import UsersPage from './pages/UsersPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import AdminProtectedRoute from './components/AdminProtectedRoute.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import BlogsPage from './pages/BlogPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import VouchersPage from './pages/VouchersPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
+import ReportPage from './pages/ReportPage.tsx' // <-- Sửa lỗi: Thêm lại .tsx
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -14,7 +15,8 @@ import {
   Users, 
   Ticket, 
   BookOpen,
-  LogOut
+  LogOut,
+  BarChart4 // <-- ICON MỚI
 } from 'lucide-react'
 
 export default function AdminApp() {
@@ -53,6 +55,10 @@ export default function AdminApp() {
           <NavLink to="/admin/dashboard" icon={LayoutDashboard}>
             Bảng Điều Khiển
           </NavLink>
+          {/* LINK MỚI CHO BÁO CÁO */}
+          <NavLink to="/admin/reports" icon={BarChart4}>
+            Báo Cáo Thống Kê
+          </NavLink>
           <NavLink to="/admin/orders" icon={ShoppingCart}>
             Đơn Hàng
           </NavLink>
@@ -88,6 +94,7 @@ export default function AdminApp() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route element={<AdminProtectedRoute />}>
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="reports" element={<ReportPage />} /> {/* <-- ROUTE MỚI */}
             <Route path="orders" element={<OrdersPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="users" element={<UsersPage />} />

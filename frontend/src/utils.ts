@@ -35,3 +35,15 @@ export const authHeader = () => {
 
   return { Authorization: `Bearer ${user.token}` }
 }
+
+export const formatCurrency = (amount: number | string | undefined): string => {
+  if (amount === undefined || amount === null) return '0₫'
+  const number = typeof amount === 'string' ? parseFloat(amount) : amount
+  if (isNaN(number)) return '0₫'
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(number)
+}
