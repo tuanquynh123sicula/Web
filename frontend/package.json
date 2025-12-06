@@ -48,6 +48,7 @@
     "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
+    "web": "file:..",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -17,13 +17,12 @@ exports.generateToken = generateToken;
 const isAuth = (req, res, next) => {
     const { authorization } = req.headers;
     if (authorization) {
-        const token = authorization.slice(7);
+        const token = authorization.slice(7); // Bỏ "Bearer "
         jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'somethingsecret', (err, decode) => {
             if (err) {
                 res.status(401).json({ message: 'Invalid or expired token' });
             }
             else {
-                // Ép kiểu isAdmin về boolean
                 req.user = {
                     ...decode,
                     isAdmin: Boolean(decode.isAdmin),
@@ -39,7 +38,6 @@ const isAuth = (req, res, next) => {
 };
 exports.isAuth = isAuth;
 const isAdmin = (req, res, next) => {
-    // console.log('isAdmin check:', req.user)
     if (req.user && req.user.isAdmin) {
         next();
     }

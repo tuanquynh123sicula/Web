@@ -14,19 +14,18 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 dotenv_1.default.config();
 exports.vnpayRouter = express_1.default.Router();
-// ====================
-// ⚙️ Đọc cấu hình ENV
-// ====================
-const vnp_TmnCode = process.env.VNP_TMNCODE || '';
+// Đọc cấu hình ENV
+const vnp_TmnCode = process.env.VNP_TMNCODE || 'TMNCODE';
 const vnp_HashSecret = process.env.VNP_HASHSECRET || '';
 const vnp_Url = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 // const VNP_RETURN_URL = process.env.VNP_RETURNURL || 'http://localhost:5173/order/:id'
 const FRONTEND_URL = 'http://localhost:5173';
-// =============================
-// 1️⃣ TẠO URL THANH TOÁN
-// =============================
+// TẠO URL THANH TOÁN
 exports.vnpayRouter.post('/create_payment_url', async (req, res) => {
     try {
+        console.log('🔍 VNP_TMNCODE:', vnp_TmnCode);
+        console.log('🔍 VNP_HASHSECRET length:', vnp_HashSecret.length);
+        console.log('🔍 VNP_URL:', vnp_Url);
         const { amount, bankCode, orderId } = req.body;
         if (!amount || !orderId) {
             return res.status(400).json({ message: 'Thiếu amount hoặc orderId' });
@@ -38,7 +37,7 @@ exports.vnpayRouter.post('/create_payment_url', async (req, res) => {
         const createDate = (0, moment_1.default)(date).format('YYYYMMDDHHmmss');
         const expireDate = (0, moment_1.default)(date).add(15, 'minutes').format('YYYYMMDDHHmmss');
         const orderInfo = `Thanh toan don hang ${orderId}`;
-        const vnp_TxnRef = orderId; // 🔑 dùng orderId làm mã giao dịch để đối chiếu dễ hơn
+        const vnp_TxnRef = orderId;
         const vnp_Params = {
             vnp_Version: '2.1.0',
             vnp_Command: 'pay',
@@ -62,17 +61,15 @@ exports.vnpayRouter.post('/create_payment_url', async (req, res) => {
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
         sortedParams['vnp_SecureHash'] = signed;
         const paymentUrl = `${vnp_Url}?${qs_1.default.stringify(sortedParams, { encode: false })}`;
-        console.log('Payment URL:', paymentUrl);
+        console.log('✅ Payment URL created:', paymentUrl);
         res.json({ paymentUrl });
     }
     catch (err) {
-        console.error('Error creating VNPay URL:', err);
+        console.error('❌ Error:', err);
         res.status(500).json({ message: 'Tạo URL thanh toán thất bại' });
     }
 });
-// =============================
-// 2️⃣ XỬ LÝ RETURN (client redirect)
-// =============================
+// XỬ LÝ RETURN (client redirect)
 exports.vnpayRouter.get('/vnpay_return', (0, express_async_handler_1.default)(async (req, res) => {
     const vnp_Params = req.query;
     const secureHash = vnp_Params['vnp_SecureHash'];
@@ -86,7 +83,7 @@ exports.vnpayRouter.get('/vnpay_return', (0, express_async_handler_1.default)(as
         .join('&');
     const hmac = crypto_1.default.createHmac('sha512', process.env.VNP_HASHSECRET);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-    // ✅ Nếu VNPay xác nhận thanh toán thành công
+    // Nếu VNPay xác nhận thanh toán thành công
     if (secureHash === signed && rspCode === '00') {
         await orderModel_1.OrderModel.updateOne({ _id: new mongoose_1.default.Types.ObjectId(orderId) }, {
             isPaid: true,
@@ -101,9 +98,7 @@ exports.vnpayRouter.get('/vnpay_return', (0, express_async_handler_1.default)(as
         return res.redirect(`${process.env.FRONTEND_URL}/order/${orderId}?success=false`);
     }
 }));
-// =============================
-// 3️⃣ XỬ LÝ IPN (VNPay gọi lại server xác nhận)
-// =============================
+//  XỬ LÝ IPN (VNPay gọi lại server xác nhận)
 exports.vnpayRouter.get('/vnpay_ipn', async (req, res) => {
     try {
         const vnp_Params = { ...req.query };
@@ -121,10 +116,10 @@ exports.vnpayRouter.get('/vnpay_ipn', async (req, res) => {
             console.log('🔹 orderId nhận được:', orderId);
             console.log('🔹 responseCode nhận được:', responseCode);
             if (responseCode === '00') {
-                await orderModel_1.OrderModel.updateOne({ _id: orderId }, {
+                await orderModel_1.OrderModel.updateOne({ _id: new mongoose_1.default.Types.ObjectId(orderId) }, {
                     isPaid: true,
                     paidAt: new Date(),
-                    paymentResult: vnp_Params, // bạn có thể lưu toàn bộ thông tin VNPay trả về
+                    paymentResult: vnp_Params,
                 });
                 console.log('🔹 Kết quả update order:');
                 return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
@@ -142,9 +137,7 @@ exports.vnpayRouter.get('/vnpay_ipn', async (req, res) => {
         res.status(500).json({ RspCode: '99', Message: 'Server error' });
     }
 });
-// =============================
-// 🧩 Hàm sắp xếp object chuẩn VNPay
-// =============================
+// Hàm sắp xếp object chuẩn VNPay
 function sortObject(obj) {
     const sorted = {};
     const keys = Object.keys(obj).sort();

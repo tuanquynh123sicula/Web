@@ -5,7 +5,7 @@ const apiClient = axios.create({
     import.meta.env.VITE_API_URL ||
     (import.meta.env.MODE === 'development'
       ? 'http://localhost:4000'
-      : '/'),
+      : 'https://your-render-backend.onrender.com'),
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',

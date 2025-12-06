@@ -4,17 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewRouter = void 0;
-const reviewModel_1 = require("@/models/reviewModel");
 const express_1 = __importDefault(require("express"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
+const reviewModel_1 = require("../models/reviewModel");
+const productModel_1 = require("../models/productModel");
 const utils_1 = require("../utils");
-const productModel_1 = require("@/models/productModel");
 exports.reviewRouter = express_1.default.Router();
-// ✅ Hàm helper: Cập nhật rating của product (KHÔNG xóa cũ)
+// ... rest of code
 const updateProductRating = async (productId) => {
     try {
-        const reviews = await reviewModel_1.ReviewModel
-            .find({ productId });
+        const reviews = await reviewModel_1.ReviewModel.find({ productId });
         console.log(`Found ${reviews.length} reviews for product ${productId}`);
         if (reviews.length === 0) {
             await productModel_1.ProductModel.findByIdAndUpdate(productId, {
@@ -67,13 +66,11 @@ exports.reviewRouter.post('/', utils_1.isAuth, (0, express_async_handler_1.defau
         res.status(400).json({ error: 'Rating phải từ 1-5' });
         return;
     }
-    // Kiểm tra product tồn tại
     const product = await productModel_1.ProductModel.findById(productId);
     if (!product) {
         res.status(404).json({ error: 'Sản phẩm không tồn tại' });
         return;
     }
-    // Kiểm tra xem user đã review chưa
     const existingReview = await reviewModel_1.ReviewModel.findOne({
         productId,
         userId: user._id,
@@ -82,7 +79,6 @@ exports.reviewRouter.post('/', utils_1.isAuth, (0, express_async_handler_1.defau
         res.status(400).json({ error: 'Bạn đã review sản phẩm này rồi' });
         return;
     }
-    // Tạo review mới
     const newReview = new reviewModel_1.ReviewModel({
         productId,
         userId: user._id,
@@ -95,7 +91,6 @@ exports.reviewRouter.post('/', utils_1.isAuth, (0, express_async_handler_1.defau
     });
     const savedReview = await newReview.save();
     console.log('Review saved:', savedReview._id);
-    // ✅ CẬP NHẬT RATING CỦA PRODUCT
     await updateProductRating(productId);
     res.status(201).json(savedReview);
 }));
@@ -114,7 +109,6 @@ exports.reviewRouter.delete('/:reviewId', utils_1.isAuth, (0, express_async_hand
     }
     const productId = review.productId;
     await reviewModel_1.ReviewModel.findByIdAndDelete(reviewId);
-    // ✅ CẬP NHẬT RATING SAU KHI XÓA
     await updateProductRating(productId);
     res.json({ message: 'Xóa review thành công' });
 }));
