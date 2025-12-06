@@ -15,19 +15,23 @@ import { compareRouter } from './routers/compareRouter'
 import { voucherRouter } from './routers/voucherRouter'
 
 
-dotenv.config()
+dotenv.config();
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost/ecomerecedb';
-mongoose.set('strictQuery', true)
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  throw new Error('MONGODB_URI is required');
+}
+mongoose.set('strictQuery', true);
 mongoose
-  .connect(MONGODB_URI)
+  .connect(uri)
   .then(() => {
-    console.log('connected to mongodb')
+    const { host, name } = mongoose.connection;
+    console.log(`MongoDB connected: host=${host}, db=${name}`);
   })
-  .catch(() => {
-    console.log('error mongodb')
-  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 const app = express()
 
