@@ -18,9 +18,13 @@ uploadRouter.post('/', isAuth, upload.single('image'), (req, res) => {
   if (!req.file) {
       return res.status(400).send({ message: "No file uploaded." });
   }
-  const imagePath = `/${req.file.path.replace(/\\/g, '/')}`;
+  
+  // ✅ Trả về URL đầy đủ
+  const baseUrl = process.env.BACKEND_URL || 'http://localhost:4000'
+  const imagePath = `/uploads/${req.file.filename}`
+  const fullUrl = `${baseUrl}${imagePath}`
 
-  res.send({ image: imagePath })
+  res.send({ image: fullUrl })
 })
 
 export default uploadRouter

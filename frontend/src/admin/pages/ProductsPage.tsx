@@ -8,7 +8,7 @@ import {
 } from '@/api/adminApi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import apiClient from '@/apiClient'
+import apiClient, { getImageUrl } from '@/apiClient' // ✅ Import helper
 import { toast } from "sonner"
 import { Upload, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import type { Product } from '@/types/Product'
@@ -398,17 +398,7 @@ const ProductsPage: React.FC = () => {
               <CardContent className="p-4 flex flex-col h-full">
                 <div className="mb-3 overflow-hidden bg-gray-50 flex items-center justify-center h-48">
                   <img
-                    src={
-                      p.image
-                        ? p.image.startsWith('http')
-                          ? p.image
-                          : p.image.startsWith('/uploads/')
-                            ? `http://localhost:4000${p.image}`
-                            : p.image.startsWith('/')
-                              ? p.image
-                              : `/images/${p.image}`
-                        : '/images/no-image.png' 
-                    }
+                    src={getImageUrl(p.image)}
                     alt={p.name}
                     className="h-full object-contain transition-transform duration-300 hover:scale-110"
                     onError={(e) => {
