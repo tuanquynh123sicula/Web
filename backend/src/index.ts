@@ -17,72 +17,21 @@ import { voucherRouter } from './routers/voucherRouter'
 
 dotenv.config()
 
-
 const MONGODB_URI =
   process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost/ecomerecedb';
 mongoose.set('strictQuery', true)
 mongoose
-     .connect(MONGODB_URI)
-     .then(() => {
-       console.log('connected to mongodb')
-     })
-     .catch(() => {
-       console.log('error mongodb')
-     })
-
-   const app = express()
-    app.use(
-      cors({
-    credentials: true,
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-   })
-  )
-
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
-  
-  // app.use((req, res, next) => {
-  //   res.setHeader(
-  //     'Content-Security-Policy',
-  //     "default-src 'self'; font-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
-  //   )
-  //   next()
-  // })
-  
-  app.get('/', (req, res) => {
-    res.send('API is running')
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log('connected to mongodb')
   })
-  
-  app.use('/api/products', productRouter)
-  app.use('/api/seed', seedRouter)
-  app.use('/api/orders', orderRouter)
-  app.use('/api/users', userRouter)
-  app.use('/api/vnpay', vnpayRouter)
-  app.use('/api/admin', adminRouter)
-  app.use('/api/upload', uploadRouter)
-  app.use('/api/reviews', reviewRouter)
-  app.use('/api/wishlist', wishlistRouter)
-  app.use('/api/compare', compareRouter)
-  app.use('/api/vouchers', voucherRouter)
-  app.use('/uploads', express.static('uploads'))
+  .catch(() => {
+    console.log('error mongodb')
+  })
 
+const app = express()
 
-  
-  // ❌ KHỐI CORS TRÙNG LẶP ĐÃ BỊ XÓA KHỎI ĐÂY
-  // app.use(cors({
-  // origin: 'http://localhost:5173', 
-  // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  // allowedHeaders: ['Content-Type', 'Authorization'],
-  // credentials: true 
-  // }));
-
-
- const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-
+// CORS: chỉ một block, cho phép từ env (vercel/prod/preview)
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   process.env.FRONTEND_URL_PREVIEW || '',
@@ -90,7 +39,7 @@ const ALLOWED_ORIGINS = [
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true); 
+    if (!origin) return cb(null, true);
     const allowed = ALLOWED_ORIGINS.some((o) => origin === o);
     cb(allowed ? null : new Error('Not allowed by CORS'), allowed);
   },
@@ -98,5 +47,29 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 app.options('*', cors());
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+app.get('/', (req, res) => {
+  res.send('API is running')
+})
+
+app.use('/api/products', productRouter)
+app.use('/api/seed', seedRouter)
+app.use('/api/orders', orderRouter)
+app.use('/api/users', userRouter)
+app.use('/api/vnpay', vnpayRouter)
+app.use('/api/admin', adminRouter)
+app.use('/api/upload', uploadRouter)
+app.use('/api/reviews', reviewRouter)
+app.use('/api/wishlist', wishlistRouter)
+app.use('/api/compare', compareRouter)
+app.use('/api/vouchers', voucherRouter)
+app.use('/uploads', express.static('uploads'))
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+})
