@@ -44,7 +44,16 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  // Add headers sent by axios client
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Cache-Control',
+    'Pragma',
+    'X-Requested-With',
+  ],
+  // Optional: expose headers if needed
+  exposedHeaders: ['Content-Length'],
 }));
 
 app.use(express.json())
