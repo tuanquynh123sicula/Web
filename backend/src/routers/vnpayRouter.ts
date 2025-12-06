@@ -3,31 +3,39 @@ import querystring from 'qs'
 import crypto from 'crypto'
 import moment from 'moment'
 import dotenv from 'dotenv'
-import {Order} from '../models/orderModel'
 import { OrderModel } from '../models/orderModel'
-import mongoose from 'mongoose';
-import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose'
+import asyncHandler from 'express-async-handler'
+
 dotenv.config()
-
-
-
 
 export const vnpayRouter = express.Router()
 
-// Đọc cấu hình ENV
+// ✅ Đọc cấu hình ENV với fallback
 const vnp_TmnCode = process.env.VNP_TMNCODE || 'TMNCODE'
 const vnp_HashSecret = process.env.VNP_HASHSECRET || ''
 const vnp_Url = process.env.VNP_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
-// const VNP_RETURN_URL = process.env.VNP_RETURNURL || 'http://localhost:5173/order/:id'
-const FRONTEND_URL = 'http://localhost:5173'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000'
 
+// Hàm sắp xếp object chuẩn VNPay
+function sortObject(obj: Record<string, any>) {
+  const sorted: Record<string, any> = {}
+  const keys = Object.keys(obj).sort()
+  for (const key of keys) {
+    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+')
+  }
+  return sorted
+}
 
-// TẠO URL THANH TOÁN
+// ✅ TẠO URL THANH TOÁN
 vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
   try {
     console.log('🔍 VNP_TMNCODE:', vnp_TmnCode)
     console.log('🔍 VNP_HASHSECRET length:', vnp_HashSecret.length)
     console.log('🔍 VNP_URL:', vnp_Url)
+    console.log('🔍 FRONTEND_URL:', FRONTEND_URL)
+    console.log('🔍 BACKEND_URL:', BACKEND_URL)
     
     const { amount, bankCode, orderId } = req.body
 
@@ -55,7 +63,7 @@ vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
       vnp_OrderInfo: orderInfo,
       vnp_OrderType: 'billpayment',
       vnp_Amount: (Number(amount) * 100).toFixed(0),
-      vnp_ReturnUrl: `${FRONTEND_URL}/order/${orderId}`,
+      vnp_ReturnUrl: `${FRONTEND_URL}/order/${orderId}`, // ✅ Dùng FRONTEND_URL động
       vnp_IpAddr: String(ipAddr),
       vnp_CreateDate: createDate,
       vnp_ExpireDate: expireDate,
@@ -78,27 +86,28 @@ vnpayRouter.post('/create_payment_url', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Tạo URL thanh toán thất bại' })
   }
 })
-    
 
-// XỬ LÝ RETURN (client redirect)
+// ✅ XỬ LÝ RETURN (client redirect)
 vnpayRouter.get(
   '/vnpay_return',
   asyncHandler(async (req: Request, res: Response) => {
-    const vnp_Params = req.query;
-    const secureHash = vnp_Params['vnp_SecureHash'];
-    const orderId = vnp_Params['vnp_TxnRef'] as string;
-    const rspCode = vnp_Params['vnp_ResponseCode'];
+    const vnp_Params = req.query
+    const secureHash = vnp_Params['vnp_SecureHash']
+    const orderId = vnp_Params['vnp_TxnRef'] as string
+    const rspCode = vnp_Params['vnp_ResponseCode']
 
-    delete vnp_Params['vnp_SecureHash'];
-    delete vnp_Params['vnp_SecureHashType'];
+    console.log('🔵 VNPay return callback:', { orderId, rspCode })
+
+    delete vnp_Params['vnp_SecureHash']
+    delete vnp_Params['vnp_SecureHashType']
 
     const signData = Object.keys(vnp_Params)
       .sort()
       .map((key) => `${key}=${vnp_Params[key]}`)
-      .join('&');
+      .join('&')
 
-    const hmac = crypto.createHmac('sha512', process.env.VNP_HASHSECRET as string);
-    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+    const hmac = crypto.createHmac('sha512', vnp_HashSecret)
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex')
 
     // Nếu VNPay xác nhận thanh toán thành công
     if (secureHash === signed && rspCode === '00') {
@@ -109,23 +118,25 @@ vnpayRouter.get(
           paidAt: new Date(),
           paymentResult: vnp_Params,
         }
-      );
+      )
 
-      console.log('✅ Đã cập nhật order thanh toán thành công:', orderId);
-      return res.redirect(`${process.env.FRONTEND_URL}/order/${orderId}?success=true`);
+      console.log('✅ Đã cập nhật order thanh toán thành công:', orderId)
+      return res.redirect(`${FRONTEND_URL}/order/${orderId}?success=true`)
     } else {
-      console.log('❌ Thanh toán thất bại hoặc sai chữ ký:', rspCode);
-      return res.redirect(`${process.env.FRONTEND_URL}/order/${orderId}?success=false`);
+      console.log('❌ Thanh toán thất bại hoặc sai chữ ký:', rspCode)
+      return res.redirect(`${FRONTEND_URL}/order/${orderId}?success=false`)
     }
   })
-);
+)
 
-
-//  XỬ LÝ IPN (VNPay gọi lại server xác nhận)
+// ✅ XỬ LÝ IPN (VNPay gọi lại server xác nhận)
 vnpayRouter.get('/vnpay_ipn', async (req: Request, res: Response) => {
   try {
     const vnp_Params: any = { ...req.query }
     const secureHash = vnp_Params['vnp_SecureHash'] as string
+    
+    console.log('🔵 VNPay IPN received:', vnp_Params)
+    
     delete vnp_Params['vnp_SecureHash']
     delete vnp_Params['vnp_SecureHashType']
 
@@ -137,38 +148,31 @@ vnpayRouter.get('/vnpay_ipn', async (req: Request, res: Response) => {
     if (secureHash === signed) {
       const orderId = vnp_Params['vnp_TxnRef']
       const responseCode = vnp_Params['vnp_ResponseCode']
-      console.log('🔹 VNPay return params:', vnp_Params)
-console.log('🔹 orderId nhận được:', orderId)
-      console.log('🔹 responseCode nhận được:', responseCode)
+      
+      console.log('🔹 VNPay IPN - orderId:', orderId, 'responseCode:', responseCode)
+
       if (responseCode === '00') {
-        await OrderModel.updateOne(
-  { _id: new mongoose.Types.ObjectId(orderId) },
-            {
-                isPaid: true,
-                paidAt: new Date(),
-                paymentResult: vnp_Params,
-            }
+        const result = await OrderModel.updateOne(
+          { _id: new mongoose.Types.ObjectId(orderId) },
+          {
+            isPaid: true,
+            paidAt: new Date(),
+            paymentResult: vnp_Params,
+          }
         )
-console.log('🔹 Kết quả update order:',)
+        
+        console.log('✅ Order updated via IPN:', result)
         return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' })
       } else {
+        console.log('❌ Payment failed via IPN:', responseCode)
         return res.status(200).json({ RspCode: '01', Message: 'Payment Failed' })
       }
     } else {
+      console.log('❌ Invalid signature in IPN')
       return res.status(200).json({ RspCode: '97', Message: 'Invalid signature' })
     }
   } catch (err) {
-    console.error('IPN error:', err)
+    console.error('❌ IPN error:', err)
     res.status(500).json({ RspCode: '99', Message: 'Server error' })
   }
 })
-
-// Hàm sắp xếp object chuẩn VNPay
-function sortObject(obj: Record<string, any>) {
-  const sorted: Record<string, any> = {}
-  const keys = Object.keys(obj).sort()
-  for (const key of keys) {
-    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+')
-  }
-  return sorted
-}

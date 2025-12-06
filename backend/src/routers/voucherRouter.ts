@@ -10,10 +10,9 @@ voucherRouter.post('/validate', async (req: Request, res: Response) => {
   try {
     const { code, orderTotal } = req.body
 
-    console.log('Request body:', req.body) // Debug log
-    console.log('Code:', code, 'OrderTotal:', orderTotal)
+    console.log('🔍 Validate voucher request:', { code, orderTotal })
 
-    if (!code || !orderTotal) {
+    if (!code || orderTotal === undefined || orderTotal === null) {
       res.status(400).json({ message: 'Vui lòng nhập mã voucher và giá trị đơn hàng' })
       return
     }
@@ -48,22 +47,40 @@ voucherRouter.post('/validate', async (req: Request, res: Response) => {
       return
     }
 
+    console.log('✅ Voucher validated successfully:', voucher.code)
+
     res.json({ 
       message: 'Voucher hợp lệ',
       voucher 
     })
   } catch (error: any) {
-    console.error('Validate voucher error:', error)
+    console.error('❌ Validate voucher error:', error)
     res.status(500).json({ message: error.message || 'Lỗi khi xác thực voucher' })
   }
 })
 
-// GET: Lấy danh sách tất cả vouchers
-voucherRouter.get('/', async (req: Request, res: Response) => {
+// ✅ GET: Lấy danh sách vouchers PUBLIC (chỉ active)
+voucherRouter.get('/public', async (req: Request, res: Response) => {
+  try {
+    const vouchers = await VoucherModel.find({ 
+      isActive: true,
+      expiryDate: { $gte: new Date() } // Chỉ lấy voucher chưa hết hạn
+    }).sort({ createdAt: -1 })
+    
+    res.json(vouchers)
+  } catch (error: any) {
+    console.error('❌ Get public vouchers error:', error)
+    res.status(500).json({ message: error.message || 'Lỗi khi tải vouchers' })
+  }
+})
+
+// GET: Lấy danh sách TẤT CẢ vouchers (Admin only)
+voucherRouter.get('/', isAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const vouchers = await VoucherModel.find().sort({ createdAt: -1 })
     res.json(vouchers)
   } catch (error: any) {
+    console.error('❌ Get all vouchers error:', error)
     res.status(500).json({ message: error.message || 'Lỗi khi tải vouchers' })
   }
 })
@@ -78,6 +95,7 @@ voucherRouter.get('/:id', async (req: Request, res: Response) => {
     }
     res.json(voucher)
   } catch (error: any) {
+    console.error('❌ Get voucher by ID error:', error)
     res.status(500).json({ message: error.message })
   }
 })
@@ -91,9 +109,22 @@ voucherRouter.post(
     try {
       const { code, discountType, discountValue, minOrderValue, maxUsage, expiryDate } = req.body
 
+      console.log('📝 Create voucher request:', req.body)
+
       // Validate
       if (!code || !discountType || !discountValue || !maxUsage || !expiryDate) {
         res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' })
+        return
+      }
+
+      // Validate discountValue
+      if (discountType === 'percentage' && (discountValue < 0 || discountValue > 100)) {
+        res.status(400).json({ message: 'Giá trị giảm giá phần trăm phải từ 0-100' })
+        return
+      }
+
+      if (discountType === 'fixed' && discountValue < 0) {
+        res.status(400).json({ message: 'Giá trị giảm giá phải lớn hơn 0' })
         return
       }
 
@@ -117,8 +148,10 @@ voucherRouter.post(
       })
 
       const savedVoucher = await voucher.save()
+      console.log('✅ Voucher created:', savedVoucher.code)
       res.status(201).json(savedVoucher)
     } catch (error: any) {
+      console.error('❌ Create voucher error:', error)
       res.status(500).json({ message: error.message || 'Lỗi khi tạo voucher' })
     }
   }
@@ -132,6 +165,8 @@ voucherRouter.put(
   async (req: Request, res: Response) => {
     try {
       const { code, discountType, discountValue, minOrderValue, maxUsage, expiryDate } = req.body
+
+      console.log('📝 Update voucher request:', req.params.id, req.body)
 
       const voucher = await VoucherModel.findById(req.params.id)
       if (!voucher) {
@@ -151,6 +186,19 @@ voucherRouter.put(
         voucher.code = code.toUpperCase()
       }
 
+      // Validate discountValue nếu có update
+      if (discountValue !== undefined) {
+        const type = discountType || voucher.discountType
+        if (type === 'percentage' && (discountValue < 0 || discountValue > 100)) {
+          res.status(400).json({ message: 'Giá trị giảm giá phần trăm phải từ 0-100' })
+          return
+        }
+        if (type === 'fixed' && discountValue < 0) {
+          res.status(400).json({ message: 'Giá trị giảm giá phải lớn hơn 0' })
+          return
+        }
+      }
+
       if (discountType) voucher.discountType = discountType
       if (discountValue !== undefined) voucher.discountValue = discountValue
       if (minOrderValue !== undefined) voucher.minOrderValue = minOrderValue
@@ -158,8 +206,10 @@ voucherRouter.put(
       if (expiryDate) voucher.expiryDate = new Date(expiryDate)
 
       const updatedVoucher = await voucher.save()
+      console.log('✅ Voucher updated:', updatedVoucher.code)
       res.json(updatedVoucher)
     } catch (error: any) {
+      console.error('❌ Update voucher error:', error)
       res.status(500).json({ message: error.message || 'Lỗi khi cập nhật voucher' })
     }
   }
@@ -167,12 +217,14 @@ voucherRouter.put(
 
 // PATCH: Cập nhật trạng thái voucher (Admin only)
 voucherRouter.patch(
-  '/:id',
+  '/:id/status',
   isAuth,
   isAdmin,
   async (req: Request, res: Response) => {
     try {
       const { isActive } = req.body
+
+      console.log('🔄 Update voucher status:', req.params.id, { isActive })
 
       const voucher = await VoucherModel.findByIdAndUpdate(
         req.params.id,
@@ -185,8 +237,10 @@ voucherRouter.patch(
         return
       }
 
+      console.log('✅ Voucher status updated:', voucher.code, isActive)
       res.json(voucher)
     } catch (error: any) {
+      console.error('❌ Update status error:', error)
       res.status(500).json({ message: error.message })
     }
   }
@@ -199,17 +253,21 @@ voucherRouter.delete(
   isAdmin,
   async (req: Request, res: Response) => {
     try {
+      console.log('🗑️ Delete voucher:', req.params.id)
+
       const voucher = await VoucherModel.findByIdAndDelete(req.params.id)
       if (!voucher) {
         res.status(404).json({ message: 'Voucher không tồn tại' })
         return
       }
+
+      console.log('✅ Voucher deleted:', voucher.code)
       res.json({ message: 'Voucher đã được xóa', voucher })
     } catch (error: any) {
+      console.error('❌ Delete voucher error:', error)
       res.status(500).json({ message: error.message })
     }
   }
 )
 
-// ⭐ ĐÃ THAY THẾ 'export default' BẰNG 'Named Export'
 export { voucherRouter }

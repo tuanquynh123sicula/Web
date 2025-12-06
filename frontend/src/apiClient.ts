@@ -5,7 +5,7 @@ const apiClient = axios.create({
     import.meta.env.VITE_API_URL ||
     (import.meta.env.MODE === 'development'
       ? 'http://localhost:4000'
-      : 'https://your-render-backend.onrender.com'), // ⚠️ Thay bằng URL Render thực tế
+      : 'https://web-934k.onrender.com'), // ✅ URL Render của bạn
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
@@ -39,14 +39,14 @@ export default apiClient
 export const getImageUrl = (imagePath: string) => {
   if (!imagePath) return ''
   
+  // Nếu đã là URL đầy đủ (http/https), trả về luôn
   if (imagePath.startsWith('http')) return imagePath 
   
   // Nếu là path tương đối, nối với baseURL
   const baseUrl = import.meta.env.VITE_API_URL || 
     (import.meta.env.MODE === 'development' 
       ? 'http://localhost:4000' 
-      : 'https://web-934k.onrender.com/') 
+      : 'https://web-934k.onrender.com') // ✅ URL Render của bạn
   
   return `${baseUrl}${imagePath}`
 }
-

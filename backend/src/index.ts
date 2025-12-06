@@ -14,7 +14,6 @@ import { wishlistRouter } from './routers/wishlistRouter'
 import { compareRouter } from './routers/compareRouter'
 import { voucherRouter } from './routers/voucherRouter'
 
-
 dotenv.config();
 
 const uri = process.env.MONGODB_URI;
@@ -38,17 +37,24 @@ const app = express()
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   process.env.FRONTEND_URL_PREVIEW || '',
+  'https://techhub02.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4000',
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     const allowed = ALLOWED_ORIGINS.some((o) => origin === o);
-    cb(allowed ? null : new Error('Not allowed by CORS'), allowed);
+    if (allowed) {
+      cb(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      cb(new Error('Not allowed by CORS'), false);
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  // Add headers sent by axios client
   allowedHeaders: [
     'Content-Type',
     'Authorization',
@@ -56,12 +62,18 @@ app.use(cors({
     'Pragma',
     'X-Requested-With',
   ],
-  // Optional: expose headers if needed
   exposedHeaders: ['Content-Length'],
 }));
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+
+app.use('/uploads', express.static('uploads', {
+  setHeaders: (res) => {
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}))
 
 app.get('/', (req, res) => {
   res.send('API is running')
@@ -78,9 +90,9 @@ app.use('/api/reviews', reviewRouter)
 app.use('/api/wishlist', wishlistRouter)
 app.use('/api/compare', compareRouter)
 app.use('/api/vouchers', voucherRouter)
-app.use('/uploads', express.static('uploads'))
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Allowed origins:`, ALLOWED_ORIGINS);
 })
