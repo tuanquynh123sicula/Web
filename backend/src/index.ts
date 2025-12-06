@@ -19,7 +19,7 @@ dotenv.config()
 
 
 const MONGODB_URI =
-     process.env.MONGODB_URI || 'mongodb://localhost/ecomerecedb'
+  process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost/ecomerecedb';
 mongoose.set('strictQuery', true)
 mongoose
      .connect(MONGODB_URI)
@@ -33,8 +33,8 @@ mongoose
    const app = express()
     app.use(
       cors({
-     credentials: true,
-     origin: ['http://localhost:5173'],
+    credentials: true,
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
    })
   )
 
