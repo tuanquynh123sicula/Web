@@ -31,7 +31,6 @@ mongoose
 
 const app = express()
 
-// CORS: chỉ một block, cho phép từ env (vercel/prod/preview)
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   process.env.FRONTEND_URL_PREVIEW || '',
@@ -47,7 +46,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.options('*', cors());
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
