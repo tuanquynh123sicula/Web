@@ -20,7 +20,7 @@ export default function CartPage() {
 
   const subtotal = cartItems.reduce((a, c) => a + c.price * c.quantity, 0);
 
-  const imageUrl = (src?: string) => {
+  const getImageUrl = (src?: string) => {
     if (!src) return '/images/placeholder.png'
     if (src.startsWith('http')) return src
     if (src.startsWith('/images/')) return src
@@ -78,7 +78,7 @@ export default function CartPage() {
                         {/* IMAGE + NAME */}
                         <Col md={4} className="flex items-center">
                           <img
-                            src={imageUrl(item.image)}
+                            src={getImageUrl(item.image)}
                             alt={item.name}
                             className="w-16 h-16 object-contain mr-3 border border-gray-200"
                           />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { toast } from 'sonner'
-import axios from 'axios'
+import apiClient from '@/apiClient' // ✅ Dùng apiClient thay vì axios
 import { Store } from '@/Store'
 import type { ApiError } from '@/types/ApiError'
 import { getError } from '@/utils'
@@ -43,8 +43,6 @@ interface Voucher {
   createdAt: string
 }
 
-const API_BASE_URL = 'http://localhost:4000/api/vouchers'
-
 export default function VouchersPage() {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -68,12 +66,13 @@ export default function VouchersPage() {
   const fetchVouchers = async () => {
     setIsLoading(true)
     try {
-      const { data } = await axios.get<Voucher[]>(API_BASE_URL, {
-        headers: { Authorization: `Bearer ${userInfo?.token}` },
-      })
+      console.log('🔍 Fetching vouchers...')
+      const { data } = await apiClient.get<Voucher[]>('/api/vouchers')
+      console.log('✅ Vouchers loaded:', data.length)
       setVouchers(data)
       setError(null)
     } catch (err) {
+      console.error('❌ Fetch vouchers error:', err)
       setError(getError(err as ApiError))
       toast.error('Lỗi tải danh sách voucher.')
     } finally {
@@ -135,14 +134,10 @@ export default function VouchersPage() {
 
     try {
       if (editingId) {
-        await axios.put(`${API_BASE_URL}/${editingId}`, payload, {
-          headers: { Authorization: `Bearer ${userInfo?.token}` },
-        })
+        await apiClient.put(`/api/vouchers/${editingId}`, payload)
         toast.success('Cập nhật voucher thành công.')
       } else {
-        await axios.post(API_BASE_URL, payload, {
-          headers: { Authorization: `Bearer ${userInfo?.token}` },
-        })
+        await apiClient.post('/api/vouchers', payload)
         toast.success('Tạo voucher mới thành công.')
       }
       
@@ -174,9 +169,7 @@ export default function VouchersPage() {
     if (!confirm(`Bạn có chắc muốn xóa voucher ${code}?`)) return
 
     try {
-      await axios.delete(`${API_BASE_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${userInfo?.token}` },
-      })
+      await apiClient.delete(`/api/vouchers/${id}`)
       toast.success(`Xóa voucher ${code} thành công.`)
       fetchVouchers()
     } catch (err) {
@@ -187,10 +180,9 @@ export default function VouchersPage() {
 
   const handleToggleActive = async (voucher: Voucher) => {
     try {
-      await axios.patch(`${API_BASE_URL}/${voucher._id}`, 
-        { isActive: !voucher.isActive }, 
-        { headers: { Authorization: `Bearer ${userInfo?.token}` } }
-      )
+      await apiClient.patch(`/api/vouchers/${voucher._id}/status`, {
+        isActive: !voucher.isActive
+      })
       toast.success(`Cập nhật trạng thái ${voucher.code} thành công.`)
       fetchVouchers()
     } catch (err) {

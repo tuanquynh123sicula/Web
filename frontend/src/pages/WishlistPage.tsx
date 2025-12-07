@@ -26,7 +26,7 @@ interface WishlistResponse {
 }
 
 // Hàm xử lý đường dẫn ảnh (giữ nguyên)
- const imageUrl = (src?: string) => {
+ const getImageUrl = (src?: string) => {
         if (!src) return '/images/placeholder.png'
         if (src.startsWith('http')) return src
         
@@ -125,7 +125,7 @@ export default function WishlistPage() {
                 {/* Product Image */}
                 <div className="relative overflow-hidden bg-gray-50 h-56">
                   <img
-                    src={imageUrl(item.productImage)}
+                    src={getImageUrl(item.productImage)}
                     alt={item.productName}
                     className="w-full h-full object-contain transition duration-500 cursor-pointer"
                     onClick={() => navigate(`/product/${item.productSlug}`)}

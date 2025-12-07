@@ -38,7 +38,7 @@ interface CompareResponse {
   count: number
 }
 
-const imageUrl = (src?: string) => {
+const getImageUrl = (src?: string) => {
         if (!src) return '/images/placeholder.png'
         if (src.startsWith('http')) return src
         if (src.startsWith('/images/')) return src
@@ -202,7 +202,7 @@ export default function ComparePage() {
                     <td key={`name-${item._id}`} className="px-4 py-4 text-center border-r border-gray-200">
                       <div className='flex flex-col items-center gap-3'>
                             <img
-                                src={imageUrl(item.selectedVariant?.image || item.productImage)}
+                                src={getImageUrl(item.selectedVariant?.image || item.productImage)}
                                 alt={item.productName}
                                 className="w-24 h-24 object-contain mx-auto border border-gray-100 cursor-pointer transition duration-300 hover:scale-105"
                                 onClick={() => navigate(`/product/${item.productSlug}`)}

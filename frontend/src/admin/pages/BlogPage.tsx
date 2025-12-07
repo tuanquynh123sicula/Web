@@ -57,7 +57,7 @@ export default function BlogsPage() {
     }
   }
 
-  // Thêm hàm nén ảnh
+  // ✅ Thêm hàm nén ảnh này vào đầu component
   const compressImage = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -92,17 +92,16 @@ export default function BlogsPage() {
           canvas.toBlob(
             (blob) => {
               if (blob) {
-                const compressedFile = new File([blob], file.name, {
+                resolve(new File([blob], file.name, {
                   type: 'image/jpeg',
                   lastModified: Date.now(),
-                })
-                resolve(compressedFile)
+                }))
               } else {
-                reject(new Error('Canvas to Blob failed'))
+                reject(new Error('Nén ảnh thất bại'))
               }
             },
             'image/jpeg',
-            0.8 // Chất lượng 80%
+            0.8
           )
         }
         img.onerror = reject
@@ -111,12 +110,11 @@ export default function BlogsPage() {
     })
   }
 
-  // Sửa handleFileUpload
+  // Sửa hàm upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // ✅ Kiểm tra dung lượng
     if (file.size > 10 * 1024 * 1024) {
       toast.error('File quá lớn! Vui lòng chọn ảnh dưới 10MB')
       return
@@ -125,29 +123,22 @@ export default function BlogsPage() {
     try {
       setIsLoading(true)
       
-      // ✅ Nén ảnh trước khi upload
       const compressedFile = await compressImage(file)
-      console.log('Original size:', file.size, 'Compressed:', compressedFile.size)
+      console.log('📦 Original:', (file.size / 1024).toFixed(2), 'KB')
+      console.log('📦 Compressed:', (compressedFile.size / 1024).toFixed(2), 'KB')
 
       const formData = new FormData()
       formData.append('image', compressedFile)
 
       const { data } = await apiClient.post('/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          ...authHeader(),
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
 
       setForm({ ...form, image: data.image })
-      toast.success('Tải ảnh lên thành công!')
-    } catch  {
-      console.error('Upload error:', err)
-      if (err.response?.status === 413) {
-        toast.error('File quá lớn! Vui lòng chọn ảnh nhỏ hơn')
-      } else {
-        toast.error('Lỗi tải ảnh!')
-      }
+      toast.success('✅ Tải ảnh thành công!')
+    } catch {
+      console.error('❌ Upload error:', err)
+      toast.error(err.response?.status === 413 ? 'File quá lớn!' : 'Lỗi tải ảnh!')
     } finally {
       setIsLoading(false)
     }

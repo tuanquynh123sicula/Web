@@ -26,7 +26,7 @@ export default function OrderPage() {
     refetch,
   } = useGetOrderDetailsQuery(orderId!, userInfo!)
 
-  const imageUrl = (src?: string) => {
+  const getImageUrl = (src?: string) => {
     if (!src) return '/images/placeholder.png'
     if (src.startsWith('http')) return src
     if (src.startsWith('/images/')) return src
@@ -172,7 +172,7 @@ export default function OrderPage() {
                       <Row className="align-items-center">
                         <Col md={6} className="flex items-center">
                           <img
-                            src={imageUrl(item.image)}
+                            src={getImageUrl(item.image)}
                             alt={item.name}
                             className="w-16 h-16 object-contain mr-3 transition-transform duration-200"
                             style={{ border: '1px solid #e0e0e0' }}

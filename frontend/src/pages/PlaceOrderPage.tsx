@@ -9,10 +9,10 @@ import { Store } from '../Store'
 import CheckoutSteps from '../components/CheckoutSteps'
 import LoadingBox from '../components/LoadingBox'
 import type { ApiError } from '../types/ApiError'
-import axios from 'axios'
+// ❌ XÓA DÒNG NÀY: import axios from 'axios'
+import apiClient, { getImageUrl } from '@/apiClient' // ✅ THÊM getImageUrl
 import type { CartItem, ShippingAddress } from '@/types/Cart'
 import { FaTag } from 'react-icons/fa'
-import apiClient from '@/apiClient'
 
 export type CreateOrderInput = {
   orderItems: CartItem[]
@@ -44,7 +44,6 @@ export default function PlaceOrderPage() {
   const { state, dispatch } = useContext(Store)
   const { cart, userInfo } = state
 
-  // ✅ Kiểm tra cơ bản
   useEffect(() => {
     if (!userInfo) {
       navigate('/signin')
@@ -56,8 +55,6 @@ export default function PlaceOrderPage() {
       return
     }
 
-    // ⭐ CHỈ REDIRECT NẾU GIỎ HÀNG RỖNG VÀ KHÔNG CÓ SHIPPING ADDRESS
-    // (Nghĩa là user chưa bao giờ đặt hàng, không phải đang quay lại từ OrderPage)
     if (cart.cartItems.length === 0 && !cart.shippingAddress.address) {
       toast.info('Giỏ hàng của bạn đang trống.')
       navigate('/')
@@ -129,7 +126,7 @@ export default function PlaceOrderPage() {
 
   const { mutateAsync: createOrder, isPending } = useCreateOrderMutation()
 
-  // ✅ CẬP NHẬT: ÁP DỤNG VOUCHER TỪ API
+  // ✅ FIX 1: ÁP DỤNG VOUCHER - DÙNG apiClient
   const handleApplyCoupon = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     const code = couponCode.toUpperCase().trim()
@@ -146,18 +143,17 @@ export default function PlaceOrderPage() {
 
     setIsValidatingCoupon(true)
     try {
-      // ⭐ LỜI GỌI API THỰC TẾ ĐỂ XÁC THỰC VOUCHER ⭐
-      const { data } = await axios.post<{ message: string; voucher: Voucher }>(
-        'http://localhost:4000/api/vouchers/validate', 
+      // ✅ DÙNG apiClient THAY VÌ axios
+      const { data } = await apiClient.post<{ message: string; voucher: Voucher }>(
+        '/api/vouchers/validate', 
         { 
           code, 
-          orderTotal: itemsPrice // Truyền tổng giá trị sản phẩm để backend kiểm tra minOrderValue
+          orderTotal: itemsPrice
         }
       )
 
       const voucher = data.voucher
       
-      // Tính toán giảm giá dựa trên dữ liệu voucher hợp lệ từ server
       let discountValue = 0
       if (voucher.discountType === 'fixed') {
         discountValue = voucher.discountValue
@@ -165,7 +161,6 @@ export default function PlaceOrderPage() {
         discountValue = Math.round(itemsPrice * (voucher.discountValue / 100))
       }
 
-      // Giảm giá tối đa bằng tổng giá trị sản phẩm
       discountValue = Math.min(discountValue, itemsPrice)
 
       setCouponDiscount(discountValue)
@@ -176,7 +171,6 @@ export default function PlaceOrderPage() {
     } catch (err) {
       setCouponDiscount(0)
       setAppliedCoupon(null)
-      // Lấy lỗi chi tiết từ server (ví dụ: "Voucher đã hết hạn" hoặc "Đơn hàng tối thiểu...")
       const errorMsg = getError(err as ApiError)
       toast.error(errorMsg)
     } finally {
@@ -184,7 +178,6 @@ export default function PlaceOrderPage() {
     }
   }
 
-  // ✅ HỦY VOUCHER
   const handleRemoveCoupon = () => {
     setCouponCode('')
     setCouponDiscount(0)
@@ -192,13 +185,13 @@ export default function PlaceOrderPage() {
     toast.info('Đã hủy áp dụng voucher.')
   }
 
+  // ✅ FIX 2: THANH TOÁN VNPAY - DÙNG apiClient
   const handleVNPayPayment = async () => {
     if (!cart.shippingAddress.address) {
       toast.error('Vui lòng quay lại bước 2 để chọn địa chỉ giao hàng.')
       return
     }
 
-    // ✅ KIỂM TRA GIỎ HÀNG RỖNG TRƯỚC KHI ĐẶT HÀNG
     if (cart.cartItems.length === 0) {
       toast.error('Giỏ hàng của bạn đang trống!')
       navigate('/cart')
@@ -223,7 +216,8 @@ export default function PlaceOrderPage() {
       dispatch({ type: 'CART_CLEAR' })
 
       if (cart.paymentMethod === 'VNPAY') {
-        const response = await axios.post('http://localhost:4000/api/vnpay/create_payment_url', {
+        // ✅ DÙNG apiClient THAY VÌ axios
+        const response = await apiClient.post('/api/vnpay/create_payment_url', {
           amount: data.order.totalPrice,
           orderId: data.order._id,
         })
@@ -240,21 +234,19 @@ export default function PlaceOrderPage() {
     }
   }
 
-  const imageUrl = (src?: string) => {
-    if (!src) return '/images/placeholder.png'
-    if (src.startsWith('http')) return src
-    if (src.startsWith('/uploads/')) return `http://localhost:4000${src}`
-    if (src.startsWith('/')) return src
-    return `/images/${src}`
-  }
+  // ❌ XÓA HÀM NÀY - DÙNG getImageUrl TỪ apiClient
+  // const getImageUrl = (src?: string) => {
+  //   if (!src) return '/images/placeholder.png'
+  //   if (src.startsWith('http')) return src
+  //   if (src.startsWith('/uploads/')) return `http://localhost:4000${src}`
+  //   if (src.startsWith('/')) return src
+  //   return `/images/${src}`
+  // }
 
-  // ✅ CHO PHÉP HIỂN THỊ TRANG NẾU CÓ SHIPPING ADDRESS (User đang quay lại xem)
   if (cart.cartItems.length === 0 && !cart.shippingAddress.address) {
     return <LoadingBox />
   }
 
-  // ✅ NẾU GIỎ HÀNG RỖNG NHƯNG CÓ SHIPPING ADDRESS - CHO PHÉP XEM
-  // Nhưng DISABLE NÚT ĐẶT HÀNG
   const canPlaceOrder = cart.cartItems.length > 0
 
   return (
@@ -266,7 +258,6 @@ export default function PlaceOrderPage() {
         </Helmet>
         <h1 className="text-3xl font-bold my-4 text-gray-900">Xác nhận đơn hàng</h1>
 
-        {/* ✅ HIỂN THỊ THÔNG BÁO NẾU GIỎ HÀNG RỖNG */}
         {!canPlaceOrder && (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 mb-4 shadow-md">
             <p className="font-semibold">⚠️ Đơn hàng đã được đặt. Giỏ hàng hiện tại đang trống.</p>
@@ -320,7 +311,7 @@ export default function PlaceOrderPage() {
                         <Row className="align-items-center">
                           <Col md={6} className="flex items-center">
                             <img
-                              src={imageUrl(item.image)}
+                              src={getImageUrl(item.image ?? '')}
                               alt={item.name}
                               className="w-16 h-16 object-contain rounded-none mr-3"
                               style={{ border: '1px solid #e0e0e0' }}
@@ -360,7 +351,6 @@ export default function PlaceOrderPage() {
               <Card.Body className='p-4'>
                 <Card.Title className='text-2xl font-bold text-gray-900 mb-3'>Tổng đơn hàng</Card.Title>
                 <ListGroup variant="flush">
-                  {/* ✅ ÔNG NHẬP MÃ GIẢM GIÁ - CẢI THIỆN GIAO DIỆN */}
                   {!appliedCoupon ? (
                     <ListGroup.Item className='bg-white border-0 p-0 mb-3'>
                       <Form onSubmit={handleApplyCoupon} className='p-3'>
@@ -419,13 +409,11 @@ export default function PlaceOrderPage() {
                     </ListGroup.Item>
                   )}
 
-                  {/* Tạm tính */}
                   <ListGroup.Item className='bg-white p-2 flex justify-between transition-colors duration-200'>
                     <span className='text-gray-700'>Tạm tính ({cart.cartItems.length} sản phẩm)</span>
                     <span className='font-semibold'>{itemsPrice.toLocaleString('vi-VN')} ₫</span>
                   </ListGroup.Item>
 
-                  {/* Giảm giá theo hạng */}
                   <ListGroup.Item className='bg-white p-2 flex justify-between transition-colors duration-200'>
                     <span className='text-gray-700'>
                       Giảm theo hạng{' '}
@@ -434,7 +422,6 @@ export default function PlaceOrderPage() {
                     <span className='font-semibold text-red-600'>- {tierDiscount.toLocaleString('vi-VN')} ₫</span>
                   </ListGroup.Item>
 
-                  {/* ✅ GIẢM GIÁ THEO VOUCHER */}
                   {couponDiscount > 0 && (
                     <ListGroup.Item className='bg-white p-2 flex justify-between transition-colors duration-200'>
                       <span className='text-gray-700 font-bold'>Giảm giá Voucher</span>
@@ -442,19 +429,16 @@ export default function PlaceOrderPage() {
                     </ListGroup.Item>
                   )}
 
-                  {/* Phí vận chuyển */}
                   <ListGroup.Item className='bg-white p-2 flex justify-between transition-colors duration-200'>
                     <span className='text-gray-700'>Phí vận chuyển</span>
                     <span className='font-semibold'>{shippingPrice.toLocaleString('vi-VN')} ₫</span>
                   </ListGroup.Item>
 
-                  {/* Thuế */}
                   <ListGroup.Item className='bg-white p-2 flex justify-between transition-colors duration-200'>
                     <span className='text-gray-700'>Thuế</span>
                     <span className='font-semibold'>{taxPrice.toLocaleString('vi-VN')} ₫</span>
                   </ListGroup.Item>
 
-                  {/* Tổng cộng */}
                   <ListGroup.Item className='bg-white p-2 mt-2 pt-3 border-t-2 border-gray-300 flex justify-between transition-colors duration-200'>
                     <span className='text-xl font-bold text-gray-900'>Tổng cộng</span>
                     <span className='text-xl font-bold text-red-600'>
@@ -462,7 +446,6 @@ export default function PlaceOrderPage() {
                     </span>
                   </ListGroup.Item>
 
-                  {/* Nút Đặt hàng */}
                   <ListGroup.Item className='bg-white p-2 border-0'>
                     <div className="d-grid mt-3">
                       <Button

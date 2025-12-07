@@ -5,7 +5,7 @@ const apiClient = axios.create({
     import.meta.env.VITE_API_URL ||
     (import.meta.env.MODE === 'development'
       ? 'http://localhost:4000'
-      : 'https://web-934k.onrender.com'), // ✅ URL Render của bạn
+      : 'https://web-934k.onrender.com'),
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
@@ -35,18 +35,22 @@ apiClient.interceptors.response.use(
 
 export default apiClient
 
-// ✅ Helper xử lý URL ảnh
+// ✅ Fix getImageUrl để xử lý mọi trường hợp
 export const getImageUrl = (imagePath: string) => {
-  if (!imagePath) return ''
+  if (!imagePath) return '/images/no-image.png'
   
   // Nếu đã là URL đầy đủ (http/https), trả về luôn
-  if (imagePath.startsWith('http')) return imagePath 
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath
+  }
   
   // Nếu là path tương đối, nối với baseURL
   const baseUrl = import.meta.env.VITE_API_URL || 
     (import.meta.env.MODE === 'development' 
       ? 'http://localhost:4000' 
-      : 'https://web-934k.onrender.com') // ✅ URL Render của bạn
+      : 'https://web-934k.onrender.com')
   
-  return `${baseUrl}${imagePath}`
+  // Đảm bảo không có double slash
+  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  return `${baseUrl}${cleanPath}`
 }

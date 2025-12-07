@@ -54,7 +54,7 @@ export default function ProductPage() {
     const discountRate = rateMap[tier]
     const hasDiscount = discountRate > 0
 
-    const imageUrl = (src?: string) => {
+    const getImageUrl = (src?: string) => {
         if (!src) return '/images/placeholder.png'
         if (src.startsWith('http')) return src
         if (src.startsWith('/images/')) return src
@@ -161,7 +161,7 @@ export default function ProductPage() {
                                         whileHover={{ scale: 1.05 }}
                                         transition={{ duration: 0.3 }}
                                         className="w-full h-auto object-contain max-h-[500px] cursor-zoom-in"
-                                        src={imageUrl(displayImage)}
+                                        src={getImageUrl(displayImage)}
                                         alt={product.name}
                                         onError={() => setImgError(true)}
                                     />
@@ -192,7 +192,7 @@ export default function ProductPage() {
                                             key={idx}
                                             whileHover={{ scale: 1.1, y: -5 }}
                                             whileTap={{ scale: 0.95 }}
-                                            src={imageUrl(img)}
+                                            src={getImageUrl(img)}
                                             alt={`Thumbnail ${idx + 1}`}
                                             onClick={() => handleThumbnailClick(idx)}
                                             className={`w-16 h-16 object-contain border cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md
