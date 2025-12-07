@@ -8,6 +8,7 @@ import {
   updateBlog, 
   deleteBlog,
 } from '@/api/adminApi'
+import apiClient from '@/apiClient'
 
 type Blog = {
   _id?: string
@@ -137,8 +138,8 @@ export default function BlogsPage() {
       setForm({ ...form, image: data.image })
       toast.success('✅ Tải ảnh thành công!')
     } catch {
-      console.error('❌ Upload error:', err)
-      toast.error(err.response?.status === 413 ? 'File quá lớn!' : 'Lỗi tải ảnh!')
+      console.error('❌ Upload error:')
+      toast.error(file.size > 10 * 1024 * 1024 ? 'File quá lớn!' : 'Lỗi tải ảnh!')
     } finally {
       setIsLoading(false)
     }
